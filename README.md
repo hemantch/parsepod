@@ -6,8 +6,10 @@ Parsepod is an AI-powered podcast generator that researches any topic from the w
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.55-red?logo=streamlit&logoColor=white)](https://streamlit.io)
-[![Gemini](https://img.shields.io/badge/Gemini_API-Free_Tier-orange?logo=google&logoColor=white)](https://aistudio.google.com)
+[![Groq](https://img.shields.io/badge/Groq-LLaMA_3.3_70B-orange?logo=groq&logoColor=white)](https://console.groq.com)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
+🚀 **[Live Demo → parsepod.streamlit.app](https://parsepod.streamlit.app)**
 
 ---
 
@@ -18,7 +20,7 @@ You type a topic
       ↓
 🔍 Tavily searches & scrapes the web
       ↓
-🧠 Gemini summarises and writes a two-host script
+🧠 Groq (LLaMA 3.3 70B) writes a two-host script
       ↓
 🎤 Edge TTS voices Ryan & Jenny
       ↓
@@ -43,9 +45,9 @@ You type a topic
 | Component | Tool | Why |
 |-----------|------|-----|
 | 🔍 Search + Scrape | [Tavily API](https://tavily.com) | AI-native, returns clean text |
-| 🧠 LLM Brain | [Gemini API](https://aistudio.google.com) | Free tier, generous limits |
+| 🧠 LLM Brain | [Groq API](https://console.groq.com) — LLaMA 3.3 70B | Free tier, blazing fast inference |
 | 🎤 Text to Speech | [Edge TTS](https://github.com/rany2/edge-tts) | Free, 400+ voices, no limits |
-| 🎵 Audio Assembly | [pydub](https://github.com/jiaaro/pydub) | Simple MP3 assembly |
+| 🎵 Audio Assembly | [pydub](https://github.com/jiaaro/pydub) + ffmpeg | Simple MP3 assembly |
 | 🖥️ Frontend | [Streamlit](https://streamlit.io) | Fast, Python-native UI |
 
 ---
@@ -56,7 +58,7 @@ You type a topic
 
 - Python 3.11+
 - ffmpeg (`brew install ffmpeg` on Mac)
-- API keys for Tavily and Gemini
+- API keys for Tavily and Groq
 
 ### 1. Clone the repo
 
@@ -88,12 +90,13 @@ Edit `.env` and add your keys:
 
 ```env
 TAVILY_API_KEY=tvly-your-key-here
-GEMINI_API_KEY=AIza-your-key-here
+GROQ_API_KEY=gsk-your-key-here
+EPISODE_DURATION_MINUTES=3
 ```
 
 Get your free API keys:
 - 🔍 **Tavily** → [tavily.com](https://tavily.com) — 1,000 free searches/month
-- 🧠 **Gemini** → [aistudio.google.com](https://aistudio.google.com) — free tier, no credit card
+- 🧠 **Groq** → [console.groq.com](https://console.groq.com) — free, no credit card required
 
 ### 5. Run the app
 
@@ -102,6 +105,36 @@ streamlit run ui/app.py
 ```
 
 Opens at **http://localhost:8501** 🎉
+
+---
+
+## ☁️ Deploy to Streamlit Cloud
+
+### Step-by-step
+
+1. **Fork or push** this repo to your GitHub account.
+
+2. Go to **[share.streamlit.io](https://share.streamlit.io)** and click **New app**.
+
+3. Select your repo, set the branch to `main`, and set the **Main file path** to:
+   ```
+   ui/app.py
+   ```
+
+4. Click **Advanced settings** and paste the following into the **Secrets** panel:
+
+   ```toml
+   TAVILY_API_KEY = "tvly-your-key-here"
+   GROQ_API_KEY   = "gsk-your-key-here"
+   EPISODE_DURATION_MINUTES = "3"
+   ```
+
+5. Click **Deploy**. Streamlit Cloud will:
+   - Install system packages from `packages.txt` (includes **ffmpeg** — required by pydub)
+   - Install Python packages from `requirements.txt`
+   - Start the app automatically
+
+> **Note:** `packages.txt` in the repo root lists `ffmpeg`. Streamlit Cloud runs `apt-get install ffmpeg` automatically before starting the app — no manual server setup needed.
 
 ---
 
@@ -123,7 +156,8 @@ parsepod/
 │   ├── searcher.py      # Tavily search
 │   └── scraper.py       # Tavily extract
 ├── 📝 script/
-│   └── writer.py        # Gemini script generation
+│   ├── writer.py        # Groq script generation
+│   └── prompts.py       # Prompt templates
 ├── 🎵 audio/
 │   ├── tts.py           # Edge TTS synthesis
 │   └── assembler.py     # pydub MP3 assembly
@@ -131,9 +165,10 @@ parsepod/
 │   └── app.py           # Streamlit frontend
 ├── 📤 output/           # Final MP3 files
 ├── 🗂️ temp/             # Intermediate segments
+├── packages.txt         # System packages (ffmpeg) for Streamlit Cloud
 ├── config.py            # Environment config
 ├── run.py               # CLI entry point
-└── CLAUDE.md            # Claude Code memory
+└── CLAUDE.md            # Project notes
 ```
 
 ---
@@ -142,23 +177,23 @@ parsepod/
 
 | Service | Free Tier | Per Episode |
 |---------|-----------|-------------|
-| Tavily | 1,000/month | ~$0.001 |
-| Gemini API | 100 req/day | ~$0.00 |
+| Tavily | 1,000 searches/month | ~$0.001 |
+| Groq API | 14,400 req/day · 30M tokens/day | $0.00 |
 | Edge TTS | Unlimited | $0.00 |
 | **Total** | | **~$0.001** |
 
-> 💡 Essentially free to run for personal use!
+> 💡 Essentially free to run — Groq's free tier is extremely generous!
 
 ---
 
 ## 🗺️ Roadmap
 
 - [x] 🔍 Web research with Tavily
-- [x] 🧠 Script generation with Gemini
+- [x] 🧠 Script generation with Groq (LLaMA 3.3 70B)
 - [x] 🎤 Two-host TTS with Edge TTS
 - [x] 🎵 Audio assembly with pydub
 - [x] 🖥️ Streamlit UI
-- [ ] ☁️ Streamlit Cloud deployment
+- [x] ☁️ Streamlit Cloud deployment
 - [ ] 📄 Document upload (PDF, Word, PPT)
 - [ ] 🔄 n8n workflow integration
 - [ ] 🤖 CrewAI multi-agent pipeline
@@ -168,17 +203,17 @@ parsepod/
 
 ## 🔒 Security
 
-- API keys stored in `.env` — never committed to git
-- Prompt injection protection on all Gemini calls
-- Content sanitisation on scraped web content
+- API keys stored in `.env` locally — never committed to git
+- On Streamlit Cloud, keys are stored in the encrypted Secrets panel
 - Output validation on all LLM responses
+- Content capped at 5,000 chars per source to prevent prompt stuffing
 
 ---
 
 ## 🙏 Acknowledgements
 
 - [Tavily](https://tavily.com) — AI-native search API
-- [Google AI Studio](https://aistudio.google.com) — Gemini API
+- [Groq](https://console.groq.com) — ultra-fast LLaMA inference
 - [Edge TTS](https://github.com/rany2/edge-tts) — Microsoft Edge voices
 - [Streamlit](https://streamlit.io) — Python web app framework
 - [Claude Code](https://claude.ai) — AI coding assistant that built this
