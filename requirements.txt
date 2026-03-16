@@ -1,8 +1,8 @@
 # Web search and scraping
 tavily-python
 
-# LLM - Gemini (new SDK — replaces deprecated google-generativeai)
-google-genai
+# LLM - Groq (fast inference, replaces Gemini)
+groq
 
 # Text to speech
 edge-tts

@@ -30,7 +30,8 @@ def _get(key: str, default: str = "") -> str:
 
 # ── API Keys ──────────────────────────────────────────────────────────────────
 TAVILY_API_KEY: str = _get("TAVILY_API_KEY")
-GEMINI_API_KEY: str = _get("GEMINI_API_KEY")
+GEMINI_API_KEY: str = _get("GEMINI_API_KEY")  # kept for reference; script now uses Groq
+GROQ_API_KEY:   str = _get("GROQ_API_KEY")
 
 # ── Podcast identity ──────────────────────────────────────────────────────────
 PODCAST_NAME: str = _get("PODCAST_NAME", "Parsepod")
