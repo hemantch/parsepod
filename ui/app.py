@@ -1,5 +1,5 @@
 """
-ui/app.py — Parsepod Streamlit frontend (premium dark redesign).
+ui/app.py — Parsepod · world-class dark UI inspired by Perplexity + Apple.
 
 Run with:  streamlit run ui/app.py
 """
@@ -20,426 +20,527 @@ import config
 
 # ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Parsepod — AI Podcast Generator",
+    page_title="Parsepod",
     page_icon="🎙️",
     layout="centered",
     initial_sidebar_state="collapsed",
 )
 
-# ── Design tokens ──────────────────────────────────────────────────────────────
-CSS = """
+# ══════════════════════════════════════════════════════════════════════════════
+# CSS
+# ══════════════════════════════════════════════════════════════════════════════
+st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300&display=swap');
 
-/* ── Reset & base ── */
-*, *::before, *::after { box-sizing: border-box; }
+/* ─── Reset ─────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body, [class*="css"], .stApp {
-    font-family: 'Inter', -apple-system, sans-serif !important;
-    background: #07070f !important;
+html, body, [class*="css"] {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
 }
 
-/* ── Kill Streamlit chrome ── */
-#MainMenu, footer, header, .stDeployButton { display: none !important; }
-.stDecoration { display: none !important; }
-[data-testid="collapsedControl"] { display: none !important; }
+/* ─── Full black canvas ──────────────────────────────────────────────────── */
+.stApp, .stApp > * {
+    background: #0a0a0a !important;
+}
 
-/* ── Main container ── */
+/* ─── Kill all Streamlit chrome ──────────────────────────────────────────── */
+#MainMenu, footer, header,
+.stDeployButton, .stDecoration,
+[data-testid="collapsedControl"],
+[data-testid="stToolbar"],
+[data-testid="manage-app-button"],
+section[data-testid="stSidebar"] { display: none !important; }
+
+/* ─── Main content container ─────────────────────────────────────────────── */
 .main .block-container {
-    max-width: 780px !important;
-    padding: 0 1.5rem 5rem !important;
+    max-width: 680px !important;
+    padding: 0 1.5rem 6rem !important;
     margin: 0 auto !important;
 }
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #0f0f1e; }
-::-webkit-scrollbar-thumb { background: #2d2d5a; border-radius: 3px; }
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
 
-/* ════════════════════════════════
+/* ════════════════════════════════════════════════════════════════════════════
    HERO
-   ════════════════════════════════ */
-.pp-hero {
+   ════════════════════════════════════════════════════════════════════════════ */
+.hero {
+    padding: 5rem 0 3.5rem;
     text-align: center;
-    padding: 3.5rem 0 2.5rem;
+    animation: heroFadeUp 0.7s cubic-bezier(0.16,1,0.3,1) both;
 }
-.pp-logo {
+.hero-wordmark {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 1.25rem;
+    gap: 9px;
+    margin-bottom: 1.75rem;
 }
-.pp-logo-icon {
-    width: 46px; height: 46px;
-    background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-    box-shadow: 0 0 30px rgba(139,92,246,0.4);
+.hero-dot {
+    width: 8px; height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    animation: dotPulse 3s ease-in-out infinite;
 }
-.pp-logo-name {
-    font-size: 1.3rem;
-    font-weight: 700;
-    letter-spacing: -0.3px;
-    color: #e2e8f0;
-}
-.pp-hero-title {
-    font-size: 3rem;
-    font-weight: 800;
-    letter-spacing: -1.5px;
-    line-height: 1.1;
-    margin: 0 0 1rem;
-    background: linear-gradient(135deg, #c4b5fd 0%, #8b5cf6 40%, #06b6d4 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-.pp-hero-sub {
-    font-size: 1.05rem;
-    color: #64748b;
-    font-weight: 400;
-    margin: 0 0 0.75rem;
-}
-.pp-hero-badges {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 1rem;
-}
-.pp-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 12px;
-    background: rgba(139,92,246,0.1);
-    border: 1px solid rgba(139,92,246,0.2);
-    border-radius: 999px;
-    font-size: 0.75rem;
-    color: #a78bfa;
-    font-weight: 500;
-}
-
-/* ════════════════════════════════
-   INPUT CARD
-   ════════════════════════════════ */
-.pp-input-card {
-    background: rgba(255,255,255,0.025);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 20px;
-    padding: 1.75rem;
-    margin-bottom: 1rem;
-    backdrop-filter: blur(10px);
-}
-.pp-input-label {
+.hero-name {
     font-size: 0.8rem;
     font-weight: 600;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: #64748b;
-    margin-bottom: 0.6rem;
+    color: #555;
+}
+.hero-title {
+    font-size: clamp(2.6rem, 6vw, 3.4rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
+    color: #fff;
+    margin-bottom: 1rem;
+}
+.hero-sub {
+    font-size: 1rem;
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    color: #444;
+    text-transform: uppercase;
 }
 
-/* Override Streamlit text input */
-.stTextInput > div > div {
-    background: rgba(255,255,255,0.04) !important;
-    border: 1.5px solid rgba(255,255,255,0.08) !important;
-    border-radius: 12px !important;
-    transition: border-color 0.2s, box-shadow 0.2s !important;
+/* ════════════════════════════════════════════════════════════════════════════
+   SEARCH BAR  (form + input + button fused into one pill)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Wrapper div we inject around the form */
+.search-wrap {
+    position: relative;
+    width: 100%;
+    animation: heroFadeUp 0.7s 0.12s cubic-bezier(0.16,1,0.3,1) both;
 }
-.stTextInput > div > div:focus-within {
-    border-color: rgba(139,92,246,0.6) !important;
-    box-shadow: 0 0 0 3px rgba(139,92,246,0.12) !important;
+
+/* The form itself becomes the pill */
+[data-testid="stForm"] {
+    background: #111 !important;
+    border: 1px solid #1c1c1c !important;
+    border-radius: 50px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 6px 6px 6px 22px !important;
+    gap: 0 !important;
+    transition: border-color 0.25s, box-shadow 0.25s !important;
+    box-shadow: none !important;
 }
-.stTextInput input {
-    font-size: 1.05rem !important;
-    color: #e2e8f0 !important;
-    padding: 0.8rem 1rem !important;
+[data-testid="stForm"]:focus-within {
+    border-color: rgba(255,255,255,0.12) !important;
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.04),
+                0 8px 40px rgba(0,0,0,0.6) !important;
+}
+
+/* Input inside the form */
+[data-testid="stForm"] .stTextInput {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+[data-testid="stForm"] .stTextInput > div,
+[data-testid="stForm"] .stTextInput > div > div {
     background: transparent !important;
-}
-.stTextInput input::placeholder { color: #334155 !important; }
-
-/* Override Streamlit primary button — Generate */
-div[data-testid="stButtonGroup"] > button[kind="primary"],
-.stButton > button[kind="primary"] {
-    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #06b6d4 100%) !important;
     border: none !important;
-    border-radius: 12px !important;
-    color: white !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+[data-testid="stForm"] .stTextInput input {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #fff !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.975rem !important;
+    font-weight: 400 !important;
+    padding: 0.55rem 0 !important;
+    caret-color: #fff;
+}
+[data-testid="stForm"] .stTextInput input::placeholder {
+    color: #333 !important;
+    font-weight: 300 !important;
+}
+[data-testid="stForm"] .stTextInput input:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Submit button — white circle */
+[data-testid="stFormSubmitButton"] {
+    flex-shrink: 0 !important;
+}
+[data-testid="stFormSubmitButton"] button {
+    width: 38px !important;
+    height: 38px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    background: #fff !important;
+    border: none !important;
+    color: #000 !important;
     font-size: 1rem !important;
-    font-weight: 700 !important;
-    padding: 0.75rem 2rem !important;
-    letter-spacing: 0.2px !important;
-    box-shadow: 0 0 30px rgba(139,92,246,0.35) !important;
-    transition: transform 0.15s, box-shadow 0.2s !important;
-    width: 100% !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: background 0.15s, transform 0.12s !important;
+    box-shadow: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    animation: btnPulse 3s ease-in-out infinite !important;
 }
-div[data-testid="stButtonGroup"] > button[kind="primary"]:hover,
-.stButton > button[kind="primary"]:hover {
-    transform: translateY(-1px) !important;
-    box-shadow: 0 0 45px rgba(139,92,246,0.5) !important;
+[data-testid="stFormSubmitButton"] button:hover {
+    background: #e8e8e8 !important;
+    transform: scale(1.06) !important;
+    animation: none !important;
+}
+[data-testid="stFormSubmitButton"] button:active {
+    transform: scale(0.95) !important;
+}
+[data-testid="stFormSubmitButton"] button:disabled {
+    background: #1a1a1a !important;
+    color: #333 !important;
+    animation: none !important;
+    cursor: not-allowed !important;
+}
+/* Remove default focus ring Streamlit adds */
+[data-testid="stFormSubmitButton"] button:focus {
+    box-shadow: none !important;
+    outline: none !important;
 }
 
-/* Secondary / outline buttons (History, Load) */
-.stButton > button[kind="secondary"] {
-    background: rgba(255,255,255,0.04) !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-    border-radius: 10px !important;
-    color: #94a3b8 !important;
-    font-size: 0.85rem !important;
-    font-weight: 500 !important;
-    transition: border-color 0.15s, color 0.15s !important;
+/* ════════════════════════════════════════════════════════════════════════════
+   PROGRESS STAGES
+   ════════════════════════════════════════════════════════════════════════════ */
+.stages {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin: 2rem 0;
 }
-.stButton > button[kind="secondary"]:hover {
-    border-color: rgba(139,92,246,0.5) !important;
-    color: #c4b5fd !important;
+.stage-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid #111;
+    animation: stageFadeIn 0.5s cubic-bezier(0.16,1,0.3,1) both;
 }
+.stage-row:last-child { border-bottom: none; }
+.stage-row:nth-child(1) { animation-delay: 0.05s; }
+.stage-row:nth-child(2) { animation-delay: 0.18s; }
+.stage-row:nth-child(3) { animation-delay: 0.31s; }
 
-/* ════════════════════════════════
-   STAGE PROGRESS
-   ════════════════════════════════ */
-.stages-wrap {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 10px;
-    margin: 1.25rem 0;
-}
-.stage-card {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 14px;
-    padding: 1rem;
-    transition: border-color 0.3s, box-shadow 0.3s;
-}
-.stage-card.active {
-    border-color: rgba(139,92,246,0.5);
-    box-shadow: 0 0 20px rgba(139,92,246,0.15);
-    animation: pulse-border 2s ease-in-out infinite;
-}
-.stage-card.done {
-    border-color: rgba(52,211,153,0.35);
-    background: rgba(52,211,153,0.04);
-}
-@keyframes pulse-border {
-    0%, 100% { box-shadow: 0 0 15px rgba(139,92,246,0.12); }
-    50%       { box-shadow: 0 0 28px rgba(139,92,246,0.28); }
-}
 .stage-icon {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-    display: block;
-}
-.stage-name {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
     font-size: 0.85rem;
-    font-weight: 600;
-    color: #e2e8f0;
-    margin-bottom: 0.2rem;
+    flex-shrink: 0;
 }
-.stage-desc {
-    font-size: 0.73rem;
-    color: #475569;
-    margin-bottom: 0.5rem;
-    line-height: 1.4;
-}
-.stage-pill {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 999px;
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-}
-.stage-pill.waiting { background: rgba(255,255,255,0.05); color: #475569; }
-.stage-pill.active  { background: rgba(139,92,246,0.2);   color: #a78bfa; }
-.stage-pill.done    { background: rgba(52,211,153,0.15);   color: #34d399; }
+.stage-icon.waiting  { background: #111; color: #333; border: 1px solid #1c1c1c; }
+.stage-icon.active   { background: #fff; color: #000; }
+.stage-icon.done     { background: #1a1a1a; color: #fff; border: 1px solid #222; }
 
-/* sub-progress bar inside stage card */
-.stage-progress {
-    height: 2px;
-    background: rgba(255,255,255,0.05);
+.stage-body { flex: 1; min-width: 0; }
+.stage-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 1px;
+}
+.stage-label.muted { color: #333; }
+.stage-detail {
+    font-size: 0.75rem;
+    color: #444;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stage-status {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+}
+.stage-status.waiting { color: #2a2a2a; }
+.stage-status.active  { color: #fff; }
+.stage-status.done    { color: #3a3a3a; }
+
+/* Spinning indicator for active stage */
+.stage-spinner {
+    width: 14px; height: 14px;
+    border: 1.5px solid #222;
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+}
+
+/* TTS sub-progress */
+.tts-bar-wrap {
+    height: 1px;
+    background: #111;
     border-radius: 1px;
-    margin-top: 0.6rem;
+    margin-top: 8px;
     overflow: hidden;
 }
-.stage-progress-fill {
+.tts-bar-fill {
     height: 100%;
-    background: linear-gradient(90deg, #8b5cf6, #06b6d4);
+    background: #fff;
     border-radius: 1px;
-    transition: width 0.4s ease;
+    transition: width 0.3s ease;
 }
 
-/* Streamlit native progress bar */
-.stProgress > div > div > div > div {
-    background: linear-gradient(90deg, #7c3aed, #8b5cf6, #06b6d4) !important;
-    border-radius: 999px !important;
-}
-.stProgress > div > div {
-    background: rgba(255,255,255,0.05) !important;
-    border-radius: 999px !important;
-    height: 4px !important;
+/* ════════════════════════════════════════════════════════════════════════════
+   AUDIO PLAYER
+   ════════════════════════════════════════════════════════════════════════════ */
+/* The player is rendered as a custom HTML component — no CSS needed here.    */
+/* Its wrapper animates in when inserted into the DOM.                        */
+.player-reveal {
+    animation: slideUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
 }
 
-/* ════════════════════════════════
-   TRANSCRIPT
-   ════════════════════════════════ */
-.transcript-wrap { display: flex; flex-direction: column; gap: 10px; padding: 0.25rem 0; }
+/* ════════════════════════════════════════════════════════════════════════════
+   EPISODE HEADER (shown above player)
+   ════════════════════════════════════════════════════════════════════════════ */
+.ep-header {
+    margin: 2.5rem 0 1rem;
+    animation: stageFadeIn 0.4s ease both;
+}
+.ep-topic {
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin-bottom: 0.4rem;
+}
+.ep-meta {
+    font-size: 0.78rem;
+    color: #333;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   EXPANDERS (transcript + research)
+   ════════════════════════════════════════════════════════════════════════════ */
+.streamlit-expanderHeader {
+    background: transparent !important;
+    border: none !important;
+    border-top: 1px solid #111 !important;
+    border-radius: 0 !important;
+    color: #333 !important;
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    padding: 1rem 0 !important;
+    transition: color 0.15s !important;
+}
+.streamlit-expanderHeader:hover { color: #888 !important; }
+.streamlit-expanderHeader svg { color: #222 !important; }
+.streamlit-expanderContent {
+    background: transparent !important;
+    border: none !important;
+    padding: 0.5rem 0 1.5rem !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   TRANSCRIPT TURNS
+   ════════════════════════════════════════════════════════════════════════════ */
+.turns { display: flex; flex-direction: column; gap: 0; }
 .turn {
     display: flex;
-    gap: 12px;
+    gap: 14px;
+    padding: 1rem 0;
+    border-bottom: 1px solid #0f0f0f;
     align-items: flex-start;
 }
-.turn-avatar {
-    width: 32px; height: 32px;
+.turn:last-child { border-bottom: none; }
+.turn-init {
+    width: 26px; height: 26px;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: 0.65rem;
     font-weight: 700;
+    letter-spacing: 0.03em;
     flex-shrink: 0;
     margin-top: 2px;
-    letter-spacing: 0.3px;
 }
-.ryan-avatar  { background: rgba(96,165,250,0.15); color: #60a5fa; border: 1px solid rgba(96,165,250,0.25); }
-.jenny-avatar { background: rgba(251,146,60,0.12); color: #fb923c; border: 1px solid rgba(251,146,60,0.22); }
-.turn-bubble {
-    flex: 1;
-    padding: 0.7rem 0.95rem;
-    border-radius: 0 12px 12px 12px;
-    font-size: 0.88rem;
-    line-height: 1.6;
-    color: #cbd5e1;
-}
-.ryan-bubble  {
-    background: rgba(96,165,250,0.06);
-    border: 1px solid rgba(96,165,250,0.12);
-}
-.jenny-bubble {
-    background: rgba(251,146,60,0.06);
-    border: 1px solid rgba(251,146,60,0.12);
-}
-.turn-label {
+.ryan-init  { background: #111; color: #4a9eff; border: 1px solid #1a2a3a; }
+.jenny-init { background: #111; color: #ff9144; border: 1px solid #2a1a0a; }
+.turn-text  { flex: 1; }
+.turn-name  {
     font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.6px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
 }
-.ryan-label  { color: #60a5fa; }
-.jenny-label { color: #fb923c; }
-
-/* ════════════════════════════════
-   EXPANDERS
-   ════════════════════════════════ */
-.streamlit-expanderHeader {
-    background: rgba(255,255,255,0.025) !important;
-    border: 1px solid rgba(255,255,255,0.07) !important;
-    border-radius: 12px !important;
-    color: #94a3b8 !important;
-    font-weight: 500 !important;
-    font-size: 0.9rem !important;
-}
-.streamlit-expanderContent {
-    border: 1px solid rgba(255,255,255,0.07) !important;
-    border-top: none !important;
-    border-radius: 0 0 12px 12px !important;
-    background: rgba(255,255,255,0.015) !important;
+.ryan-name  { color: #4a9eff; }
+.jenny-name { color: #ff9144; }
+.turn-line  {
+    font-size: 0.875rem;
+    line-height: 1.65;
+    color: #666;
+    font-weight: 300;
 }
 
-/* ════════════════════════════════
-   HISTORY PANEL
-   ════════════════════════════════ */
-.hist-header {
+/* ════════════════════════════════════════════════════════════════════════════
+   RESEARCH SOURCES
+   ════════════════════════════════════════════════════════════════════════════ */
+.source-item {
+    padding: 0.85rem 0;
+    border-bottom: 1px solid #0f0f0f;
+}
+.source-item:last-child { border-bottom: none; }
+.source-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 3px;
+}
+.source-snippet {
+    font-size: 0.78rem;
+    color: #2a2a2a;
+    line-height: 1.5;
+    margin-bottom: 5px;
+}
+.source-url {
+    font-size: 0.72rem;
+    color: #333;
+    text-decoration: none;
+}
+.source-url:hover { color: #666; }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RECENT EPISODES
+   ════════════════════════════════════════════════════════════════════════════ */
+.recent-heading {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #222;
+    margin-bottom: 0.75rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #0f0f0f;
+}
+.recent-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 0.5rem 0 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid #0f0f0f;
+    cursor: pointer;
+    transition: all 0.15s;
 }
-.hist-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 1.5rem;
-}
-.hist-card {
-    background: rgba(255,255,255,0.025);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 14px;
-    padding: 0.9rem 1rem;
-    transition: border-color 0.2s, background 0.2s;
-}
-.hist-card:hover {
-    background: rgba(139,92,246,0.06);
-    border-color: rgba(139,92,246,0.3);
-}
-.hist-topic {
-    font-size: 0.87rem;
-    font-weight: 600;
-    color: #e2e8f0;
-    margin-bottom: 0.3rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+.recent-item:last-child { border-bottom: none; }
+.recent-topic {
+    font-size: 0.85rem;
+    color: #333;
+    font-weight: 400;
+    transition: color 0.15s;
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 420px;
 }
-.hist-meta {
+.recent-dur {
     font-size: 0.72rem;
-    color: #475569;
-    margin-bottom: 0.5rem;
-}
-.hist-pill {
-    display: inline-block;
-    padding: 2px 8px;
-    background: rgba(139,92,246,0.1);
-    border-radius: 999px;
-    font-size: 0.7rem;
-    color: #a78bfa;
+    color: #222;
+    flex-shrink: 0;
+    margin-left: 12px;
 }
 
-/* ════════════════════════════════
+/* ════════════════════════════════════════════════════════════════════════════
    EMPTY STATE
-   ════════════════════════════════ */
-.empty-state {
+   ════════════════════════════════════════════════════════════════════════════ */
+.empty {
     text-align: center;
-    padding: 4rem 2rem;
-    color: #2d2d5a;
+    padding: 3.5rem 0 2rem;
+    animation: stageFadeIn 0.5s ease both;
 }
-.empty-state-icon { font-size: 3.5rem; margin-bottom: 1rem; opacity: 0.4; }
-.empty-state-text { font-size: 0.95rem; font-weight: 500; color: #334155; }
-.empty-state-sub  { font-size: 0.82rem; color: #1e293b; margin-top: 0.4rem; }
+.empty-ring {
+    width: 56px; height: 56px;
+    border: 1px solid #1a1a1a;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    margin: 0 auto 1.25rem;
+    color: #222;
+}
+.empty-text { font-size: 0.875rem; color: #222; font-weight: 300; }
 
-/* ════════════════════════════════
-   RESULT META ROW
-   ════════════════════════════════ */
-.meta-row {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-    flex-wrap: wrap;
-    margin: 0.6rem 0 1.25rem;
+/* ════════════════════════════════════════════════════════════════════════════
+   ERROR
+   ════════════════════════════════════════════════════════════════════════════ */
+.pp-error {
+    border: 1px solid #2a1010;
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    font-size: 0.82rem;
+    color: #8b3333;
+    background: #0f0808;
+    margin: 1rem 0;
+    line-height: 1.5;
 }
-.meta-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.8rem;
-    color: #64748b;
+
+/* ════════════════════════════════════════════════════════════════════════════
+   LOAD BUTTON (recent episodes)
+   ════════════════════════════════════════════════════════════════════════════ */
+.stButton > button {
+    background: transparent !important;
+    border: 1px solid #1a1a1a !important;
+    border-radius: 6px !important;
+    color: #333 !important;
+    font-size: 0.75rem !important;
+    font-weight: 400 !important;
+    padding: 4px 14px !important;
+    height: auto !important;
+    transition: border-color 0.15s, color 0.15s !important;
+    letter-spacing: 0.03em !important;
 }
-.meta-icon { font-size: 0.85rem; }
-.result-topic {
-    font-size: 1.35rem;
-    font-weight: 700;
-    letter-spacing: -0.3px;
-    color: #e2e8f0;
-    margin: 1.5rem 0 0;
+.stButton > button:hover {
+    border-color: #333 !important;
+    color: #888 !important;
+    background: transparent !important;
 }
-.section-divider {
-    height: 1px;
-    background: rgba(255,255,255,0.05);
-    margin: 1.5rem 0;
+
+/* ════════════════════════════════════════════════════════════════════════════
+   KEYFRAMES
+   ════════════════════════════════════════════════════════════════════════════ */
+@keyframes heroFadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes stageFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+@keyframes dotPulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50%       { opacity: 1;   transform: scale(1.3); }
+}
+@keyframes btnPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+    50%       { box-shadow: 0 0 0 6px rgba(255,255,255,0.05); }
 }
 </style>
-"""
-
-st.markdown(CSS, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 
 # ── Session state ──────────────────────────────────────────────────────────────
@@ -450,21 +551,16 @@ for k, v in {
     "output_path":   None,
     "episode_meta":  None,
     "error":         None,
-    "stage":         0,       # 0=idle 1=research 2=script 3=audio 4=done
-    "tts_progress":  0,
-    "tts_total":     0,
-    "show_history":  False,
+    "stage":         0,
 }.items():
-    if k not in st.session_state:
-        st.session_state[k] = v
+    st.session_state.setdefault(k, v)
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
-
 def _run(coro):
     return asyncio.run(coro)
 
-def _fmt_dur(s):
+def _fmt(s):
     m, sec = divmod(int(s or 0), 60)
     return f"{m}:{sec:02d}"
 
@@ -479,228 +575,230 @@ def _load_history():
     return out
 
 def _save_meta(meta):
-    json_path = meta["mp3_path"].replace(".mp3", ".json")
-    json.dump(meta, open(json_path, "w"), indent=2)
+    json.dump(meta, open(meta["mp3_path"].replace(".mp3", ".json"), "w"), indent=2)
 
-def _b64_audio(path):
+def _b64(path):
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
 
-# ── Custom audio player component ─────────────────────────────────────────────
+# ── Stage renderer ─────────────────────────────────────────────────────────────
+def render_stages(active: int, detail: str = "", tts_done: int = 0, tts_total: int = 0):
+    """active: 1=research 2=script 3=audio 4=done"""
 
-def render_player(mp3_path: str, meta: dict):
-    """Render a fully custom-styled HTML5 audio player."""
-    audio_b64 = _b64_audio(mp3_path)
-    topic     = meta.get("topic", "Episode")
-    dur_s     = meta.get("duration_s", 0)
-    dur_str   = _fmt_dur(dur_s)
-    turns     = meta.get("turns", "?")
-    words     = f"{meta.get('words', 0):,}" if meta.get("words") else "—"
-
-    html = f"""<!DOCTYPE html><html><head>
-<meta charset="utf-8">
-<style>
-  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-  body {{
-    background: transparent;
-    font-family: -apple-system, 'Inter', BlinkMacSystemFont, sans-serif;
-    padding: 0;
-  }}
-  .player {{
-    background: linear-gradient(135deg, #13112a 0%, #0d0d20 100%);
-    border: 1px solid rgba(139,92,246,0.25);
-    border-radius: 18px;
-    padding: 18px 20px 16px;
-    box-shadow: 0 0 40px rgba(139,92,246,0.1);
-  }}
-  .player-top {{
-    display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
-  }}
-  .player-art {{
-    width: 46px; height: 46px; flex-shrink: 0;
-    background: linear-gradient(135deg, #7c3aed, #06b6d4);
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-    box-shadow: 0 0 20px rgba(139,92,246,0.35);
-  }}
-  .player-info {{ flex: 1; min-width: 0; }}
-  .player-title {{
-    font-size: 13px; font-weight: 600; color: #e2e8f0;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    margin-bottom: 3px;
-  }}
-  .player-meta {{ font-size: 11px; color: #475569; }}
-  .player-meta span {{ margin-right: 10px; }}
-  .controls {{
-    display: flex; align-items: center; gap: 12px;
-  }}
-  .play-btn {{
-    width: 40px; height: 40px; flex-shrink: 0;
-    background: linear-gradient(135deg, #7c3aed, #8b5cf6);
-    border: none; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 0 20px rgba(139,92,246,0.4);
-    transition: transform .12s, box-shadow .2s;
-    outline: none;
-  }}
-  .play-btn:hover {{ transform: scale(1.08); box-shadow: 0 0 32px rgba(139,92,246,0.6); }}
-  .play-btn:active {{ transform: scale(0.96); }}
-  .play-btn svg {{ width: 15px; height: 15px; fill: #fff; margin-left: 2px; }}
-  .play-btn.playing svg {{ margin-left: 0; }}
-  .time {{ font-size: 11px; color: #64748b; flex-shrink: 0; width: 34px; }}
-  .time.right {{ text-align: right; color: #334155; }}
-  .track {{
-    flex: 1; height: 4px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 2px; cursor: pointer; position: relative;
-    transition: height .15s;
-  }}
-  .track:hover {{ height: 6px; }}
-  .track-fill {{
-    height: 100%; width: 0%;
-    background: linear-gradient(90deg, #7c3aed, #06b6d4);
-    border-radius: 2px; pointer-events: none;
-  }}
-  .track-thumb {{
-    position: absolute; top: 50%; transform: translateY(-50%);
-    width: 12px; height: 12px;
-    background: #a78bfa; border-radius: 50%;
-    pointer-events: none; left: 0%;
-    margin-left: -6px;
-    opacity: 0; transition: opacity .15s;
-    box-shadow: 0 0 8px rgba(139,92,246,0.6);
-  }}
-  .track:hover .track-thumb {{ opacity: 1; }}
-  .vol {{ display: flex; align-items: center; gap: 6px; flex-shrink: 0; }}
-  .vol-icon {{ font-size: 13px; cursor: pointer; color: #475569; user-select:none; }}
-  .vol-range {{
-    -webkit-appearance: none;
-    width: 58px; height: 3px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 2px; outline: none; cursor: pointer;
-  }}
-  .vol-range::-webkit-slider-thumb {{
-    -webkit-appearance: none;
-    width: 10px; height: 10px;
-    background: #8b5cf6; border-radius: 50%; cursor: pointer;
-  }}
-</style>
-</head><body>
-<div class="player">
-  <div class="player-top">
-    <div class="player-art">🎙️</div>
-    <div class="player-info">
-      <div class="player-title">{topic}</div>
-      <div class="player-meta">
-        <span>🎤 {turns} turns</span>
-        <span>📝 {words} words</span>
-        <span>⏱ {dur_str}</span>
-      </div>
-    </div>
-  </div>
-  <div class="controls">
-    <button class="play-btn" id="playBtn" onclick="togglePlay()">
-      <svg id="playIcon" viewBox="0 0 24 24"><path id="playPath" d="M8 5v14l11-7z"/></svg>
-    </button>
-    <span class="time" id="cur">0:00</span>
-    <div class="track" id="track" onclick="seek(event)">
-      <div class="track-fill" id="fill"></div>
-      <div class="track-thumb" id="thumb"></div>
-    </div>
-    <span class="time right">{dur_str}</span>
-    <div class="vol">
-      <span class="vol-icon" onclick="toggleMute()">🔊</span>
-      <input type="range" class="vol-range" min="0" max="1" step="0.02"
-             value="1" oninput="audio.volume=this.value">
-    </div>
-  </div>
-</div>
-<audio id="audio" src="data:audio/mp3;base64,{audio_b64}"
-       ontimeupdate="tick()" onended="ended()"></audio>
-<script>
-const audio = document.getElementById('audio');
-const playBtn = document.getElementById('playBtn');
-const playPath = document.getElementById('playPath');
-const cur = document.getElementById('cur');
-const fill = document.getElementById('fill');
-const thumb = document.getElementById('thumb');
-const PLAY = 'M8 5v14l11-7z';
-const PAUSE = 'M6 19h4V5H6v14zm8-14v14h4V5h-4z';
-function fmt(s) {{ return Math.floor(s/60)+':'+(Math.floor(s%60)+'').padStart(2,'0'); }}
-function togglePlay() {{
-  if (audio.paused) {{ audio.play(); playPath.setAttribute('d',PAUSE); playBtn.classList.add('playing'); }}
-  else {{ audio.pause(); playPath.setAttribute('d',PLAY); playBtn.classList.remove('playing'); }}
-}}
-function tick() {{
-  if (!audio.duration) return;
-  const p = audio.currentTime / audio.duration;
-  fill.style.width = (p*100) + '%';
-  thumb.style.left = (p*100) + '%';
-  cur.textContent = fmt(audio.currentTime);
-}}
-function seek(e) {{
-  const r = e.currentTarget.getBoundingClientRect();
-  audio.currentTime = ((e.clientX-r.left)/r.width) * audio.duration;
-}}
-function ended() {{ playPath.setAttribute('d',PLAY); playBtn.classList.remove('playing'); }}
-function toggleMute() {{ audio.muted = !audio.muted; }}
-</script>
-</body></html>"""
-
-    components.html(html, height=148)
-
-
-# ── Stage cards renderer ───────────────────────────────────────────────────────
-
-def render_stages(active: int, tts_done: int = 0, tts_total: int = 0):
-    """
-    Render the three stage cards.
-    active: 1=research, 2=script, 3=audio, 4=all done
-    """
-    def card(n, icon, name, desc):
+    def row(n, icon_done, icon_active, icon_wait, label):
         if active > n:
-            status, pill = "done",    "done",
+            icon_cls, lbl_cls, status_cls, status = "done", "", "done", "✓"
+            spinner = ""
         elif active == n:
-            status, pill = "active",  "active"
+            icon_cls, lbl_cls, status_cls, status = "active", "", "active", "Running"
+            spinner = '<div class="stage-spinner"></div>'
         else:
-            status, pill = "",        "waiting"
+            icon_cls, lbl_cls, status_cls, status = "waiting", "muted", "waiting", ""
+            spinner = ""
 
-        pill_labels = {"done": "✓ Complete", "active": "● In progress", "waiting": "○ Waiting"}
-        pill_label  = pill_labels[pill]
-
-        # inner progress bar only on audio card when active
-        prog_html = ""
+        sub = ""
         if n == 3 and active == 3 and tts_total > 0:
-            pct = int((tts_done / tts_total) * 100)
-            prog_html = f"""
-            <div class="stage-progress">
-              <div class="stage-progress-fill" style="width:{pct}%"></div>
-            </div>"""
+            pct = int(tts_done / tts_total * 100)
+            sub = f"""<div class="tts-bar-wrap">
+                        <div class="tts-bar-fill" style="width:{pct}%"></div>
+                      </div>"""
+
+        detail_html = ""
+        if active == n and detail:
+            detail_html = f'<div class="stage-detail">{detail}</div>'
+
+        icon = icon_done if active > n else (icon_active if active == n else icon_wait)
 
         return f"""
-        <div class="stage-card {status}">
-          <span class="stage-icon">{icon}</span>
-          <div class="stage-name">{name}</div>
-          <div class="stage-desc">{desc}</div>
-          <span class="stage-pill {pill}">{pill_label}</span>
-          {prog_html}
+        <div class="stage-row">
+          <div class="stage-icon {icon_cls}">{icon}</div>
+          <div class="stage-body">
+            <div class="stage-label {lbl_cls}">{label}</div>
+            {detail_html}{sub}
+          </div>
+          {spinner}
+          <div class="stage-status {status_cls}">{status}</div>
         </div>"""
 
     html = f"""
-    <div class="stages-wrap">
-      {card(1, "🔍", "Research",  "Searching &amp; scraping the web")}
-      {card(2, "✍️", "Script",    "Writing with Gemini AI")}
-      {card(3, "🎵", "Audio",     "Synthesising voices")}
+    <div class="stages">
+      {row(1, "✓", "↗", "↗", "Research")}
+      {row(2, "✓", "✎", "✎", "Script")}
+      {row(3, "✓", "◎", "◎", "Audio")}
     </div>"""
     st.markdown(html, unsafe_allow_html=True)
 
 
-# ── Pipeline ───────────────────────────────────────────────────────────────────
+# ── Custom audio player ────────────────────────────────────────────────────────
+def render_player(mp3_path: str, meta: dict):
+    topic    = meta.get("topic", "Episode")
+    dur_s    = meta.get("duration_s", 0)
+    dur_str  = _fmt(dur_s)
+    turns    = meta.get("turns", "?")
+    words    = f"{meta.get('words', 0):,}" if meta.get("words") else "—"
+    a64      = _b64(mp3_path)
 
-def run_pipeline(topic: str, stage_slot, progress_slot, status_slot):
+    # Static waveform bar heights for decoration
+    bars = [28,42,61,38,72,55,80,46,65,38,90,52,74,41,60,
+            35,78,50,66,44,85,57,70,39,58,48,76,62,43,68]
+    bar_html = "".join(
+        f'<div class="wb" style="height:{h}%"></div>' for h in bars
+    )
+
+    html = f"""<!DOCTYPE html><html><head><meta charset="utf-8">
+<style>
+  * {{ box-sizing:border-box; margin:0; padding:0; }}
+  body {{ background:#0a0a0a; font-family:-apple-system,'Inter',sans-serif; padding:1px 0; }}
+
+  .player {{
+    background: #0f0f0f;
+    border: 1px solid #161616;
+    border-radius: 14px;
+    padding: 18px 20px 16px;
+  }}
+  .top {{
+    display:flex; align-items:flex-start;
+    justify-content:space-between;
+    margin-bottom:14px; gap:12px;
+  }}
+  .info {{ flex:1; min-width:0; }}
+  .title {{
+    font-size:13px; font-weight:600; color:#e8e8e8;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    margin-bottom:4px; letter-spacing:-0.01em;
+  }}
+  .meta {{ font-size:11px; color:#2a2a2a; display:flex; gap:12px; }}
+  .meta span {{ color:#2a2a2a; }}
+
+  /* Waveform */
+  .waveform {{
+    display:flex; align-items:center; gap:2px;
+    height:28px; flex-shrink:0;
+  }}
+  .wb {{
+    width:2px; min-height:4px;
+    background:#1c1c1c;
+    border-radius:1px;
+    transition: background 0.2s;
+  }}
+  .playing .wb {{
+    animation: wavePulse 1.4s ease-in-out infinite;
+  }}
+  .wb:nth-child(odd)  {{ animation-delay:0s !important; }}
+  .wb:nth-child(3n)   {{ animation-delay:0.2s !important; }}
+  .wb:nth-child(5n)   {{ animation-delay:0.4s !important; }}
+  @keyframes wavePulse {{
+    0%,100% {{ background:#2a2a2a; transform:scaleY(0.5); }}
+    50%      {{ background:#555;   transform:scaleY(1); }}
+  }}
+
+  /* Controls */
+  .controls {{ display:flex; align-items:center; gap:12px; }}
+  .play-btn {{
+    width:36px; height:36px; flex-shrink:0;
+    background:#fff; border:none; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:background .12s, transform .1s;
+    outline:none;
+  }}
+  .play-btn:hover  {{ background:#ddd; transform:scale(1.06); }}
+  .play-btn:active {{ transform:scale(0.94); }}
+  .play-btn svg {{ width:13px; height:13px; fill:#000; margin-left:2px; }}
+  .play-btn.on svg {{ margin-left:0; }}
+
+  .time {{ font-size:11px; color:#2a2a2a; flex-shrink:0; min-width:30px; }}
+  .time.end {{ text-align:right; }}
+
+  .track {{
+    flex:1; height:2px; background:#161616;
+    border-radius:1px; cursor:pointer; position:relative;
+    transition:height .15s;
+  }}
+  .track:hover {{ height:3px; }}
+  .fill {{
+    height:100%; width:0%; background:#fff;
+    border-radius:1px; pointer-events:none;
+    transition: width .1s linear;
+  }}
+
+  .vol {{ display:flex; align-items:center; gap:6px; flex-shrink:0; }}
+  .vol-icon {{ font-size:11px; color:#2a2a2a; cursor:pointer; user-select:none; }}
+  .vol-range {{
+    -webkit-appearance:none; width:52px; height:2px;
+    background:#161616; border-radius:1px; outline:none; cursor:pointer;
+  }}
+  .vol-range::-webkit-slider-thumb {{
+    -webkit-appearance:none; width:8px; height:8px;
+    background:#fff; border-radius:50%; cursor:pointer;
+  }}
+</style>
+</head><body>
+<div class="player">
+  <div class="top">
+    <div class="info">
+      <div class="title">{topic}</div>
+      <div class="meta">
+        <span>{turns} turns</span>
+        <span>{words} words</span>
+        <span>{dur_str}</span>
+      </div>
+    </div>
+    <div class="waveform" id="wv">{bar_html}</div>
+  </div>
+  <div class="controls">
+    <button class="play-btn" id="pb" onclick="toggle()">
+      <svg id="pi" viewBox="0 0 24 24"><path id="pp" d="M8 5v14l11-7z"/></svg>
+    </button>
+    <span class="time" id="ct">0:00</span>
+    <div class="track" id="tr" onclick="seek(event)">
+      <div class="fill" id="fi"></div>
+    </div>
+    <span class="time end">{dur_str}</span>
+    <div class="vol">
+      <span class="vol-icon" onclick="mute()">♪</span>
+      <input class="vol-range" type="range" min="0" max="1" step="0.02"
+             value="1" oninput="au.volume=this.value">
+    </div>
+  </div>
+</div>
+<audio id="au" src="data:audio/mp3;base64,{a64}"
+       ontimeupdate="tick()" onended="end()"></audio>
+<script>
+  const au=document.getElementById('au'),
+        pb=document.getElementById('pb'),
+        pp=document.getElementById('pp'),
+        ct=document.getElementById('ct'),
+        fi=document.getElementById('fi'),
+        wv=document.getElementById('wv');
+  const P='M8 5v14l11-7z', PA='M6 19h4V5H6v14zm8-14v14h4V5h-4z';
+  function fmt(s){{return Math.floor(s/60)+':'+(Math.floor(s%60)+'').padStart(2,'0');}}
+  function toggle(){{
+    if(au.paused){{au.play();pp.setAttribute('d',PA);pb.classList.add('on');wv.classList.add('playing');}}
+    else{{au.pause();pp.setAttribute('d',P);pb.classList.remove('on');wv.classList.remove('playing');}}
+  }}
+  function tick(){{
+    if(!au.duration)return;
+    const p=au.currentTime/au.duration;
+    fi.style.width=(p*100)+'%';
+    ct.textContent=fmt(au.currentTime);
+  }}
+  function seek(e){{
+    const r=e.currentTarget.getBoundingClientRect();
+    au.currentTime=((e.clientX-r.left)/r.width)*au.duration;
+  }}
+  function end(){{pp.setAttribute('d',P);pb.classList.remove('on');wv.classList.remove('playing');}}
+  function mute(){{au.muted=!au.muted;}}
+</script>
+</body></html>"""
+
+    st.markdown('<div class="player-reveal">', unsafe_allow_html=True)
+    components.html(html, height=140)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ── Pipeline ───────────────────────────────────────────────────────────────────
+def run_pipeline(topic: str, stage_slot):
     from research.scraper import search_and_scrape
     from script.writer    import generate_script
     from audio.tts        import synthesise_turn
@@ -709,35 +807,24 @@ def run_pipeline(topic: str, stage_slot, progress_slot, status_slot):
     voice_map = {config.HOST_A_NAME: config.HOST_A_VOICE,
                  config.HOST_B_NAME: config.HOST_B_VOICE}
 
-    # Stage 1 — Research
+    # ── Research ───────────────────────────────────────────────────────────────
     st.session_state.stage = 1
-    stage_slot.empty()
-    with stage_slot:
-        render_stages(1)
-    status_slot.markdown(
-        '<p style="text-align:center;color:#64748b;font-size:0.85rem;">'
-        '🔍 Searching the web…</p>', unsafe_allow_html=True)
-    progress_slot.progress(5)
+    with stage_slot.container():
+        render_stages(1, detail="Searching the web…")
 
     research_data = _run(search_and_scrape(topic))
     n_sources = len(research_data.get("sources", []))
-    n_scraped = len(research_data.get("content", []))
 
-    # Stage 2 — Script
+    # ── Script ─────────────────────────────────────────────────────────────────
     st.session_state.stage = 2
-    with stage_slot:
-        render_stages(2)
-    status_slot.markdown(
-        '<p style="text-align:center;color:#64748b;font-size:0.85rem;">'
-        f'✅ Found {n_sources} sources · ✍️ Writing script with Gemini…</p>',
-        unsafe_allow_html=True)
-    progress_slot.progress(35)
+    with stage_slot.container():
+        render_stages(2, detail=f"Found {n_sources} sources · Writing with Groq…")
 
     script  = _run(generate_script(research_data))
     n_turns = len(script)
     n_words = sum(len(t["line"].split()) for t in script)
 
-    # Stage 3 — Audio
+    # ── Audio ──────────────────────────────────────────────────────────────────
     st.session_state.stage = 3
     os.makedirs(config.TEMP_DIR,   exist_ok=True)
     os.makedirs(config.OUTPUT_DIR, exist_ok=True)
@@ -745,44 +832,29 @@ def run_pipeline(topic: str, stage_slot, progress_slot, status_slot):
         os.remove(old)
 
     segment_paths = []
-
     for i, turn in enumerate(script):
-        host  = turn["host"]
-        voice = voice_map[host]
-        path  = os.path.join(config.TEMP_DIR, f"turn_{i:03d}_{host.lower()}.mp3")
+        with stage_slot.container():
+            render_stages(3,
+                detail=f"{turn['host']} · turn {i+1}/{n_turns}",
+                tts_done=i, tts_total=n_turns)
 
-        with stage_slot:
-            render_stages(3, tts_done=i, tts_total=n_turns)
-
-        pct = 65 + int((i / n_turns) * 30)
-        progress_slot.progress(pct)
-        status_slot.markdown(
-            f'<p style="text-align:center;color:#64748b;font-size:0.85rem;">'
-            f'🎙️ Synthesising voice: <strong style="color:#a78bfa">{host}</strong> '
-            f'— turn {i+1} / {n_turns}</p>',
-            unsafe_allow_html=True)
-
-        _run(synthesise_turn(turn["line"], voice, path))
+        path = os.path.join(config.TEMP_DIR, f"turn_{i:03d}_{turn['host'].lower()}.mp3")
+        _run(synthesise_turn(turn["line"], voice_map[turn["host"]], path))
         segment_paths.append(path)
 
-    # Assemble
-    status_slot.markdown(
-        '<p style="text-align:center;color:#64748b;font-size:0.85rem;">'
-        '🎵 Assembling final MP3…</p>', unsafe_allow_html=True)
-    progress_slot.progress(97)
+    # ── Assemble ───────────────────────────────────────────────────────────────
+    with stage_slot.container():
+        render_stages(3, detail="Assembling MP3…", tts_done=n_turns, tts_total=n_turns)
 
     output_path = assemble_episode(segment_paths)
 
     from pydub import AudioSegment as _AS
-    audio   = _AS.from_mp3(output_path)
-    dur_s   = len(audio) / 1000
+    dur_s   = len(_AS.from_mp3(output_path)) / 1000
     size_mb = os.path.getsize(output_path) / (1024 * 1024)
 
     st.session_state.stage = 4
-    with stage_slot:
+    with stage_slot.container():
         render_stages(4)
-    progress_slot.progress(100)
-    status_slot.empty()
 
     meta = {
         "topic": topic, "timestamp": datetime.now().isoformat(),
@@ -801,59 +873,39 @@ def run_pipeline(topic: str, stage_slot, progress_slot, status_slot):
 
 # ── Hero ───────────────────────────────────────────────────────────────────────
 st.markdown("""
-<div class="pp-hero">
-  <div class="pp-logo">
-    <div class="pp-logo-icon">🎙️</div>
-    <span class="pp-logo-name">Parsepod</span>
+<div class="hero">
+  <div class="hero-wordmark">
+    <div class="hero-dot"></div>
+    <span class="hero-name">Parsepod</span>
   </div>
-  <h1 class="pp-hero-title">Turn any topic into<br>a podcast episode</h1>
-  <p class="pp-hero-sub">
-    AI researches the web, writes a two-host script, and produces a full MP3 — in minutes.
-  </p>
-  <div class="pp-hero-badges">
-    <span class="pp-badge">🔍 Tavily Search</span>
-    <span class="pp-badge">✨ Gemini AI</span>
-    <span class="pp-badge">🗣️ Edge TTS</span>
-    <span class="pp-badge">🎵 MP3 Output</span>
-  </div>
+  <h1 class="hero-title">Turn any topic<br>into a podcast</h1>
+  <p class="hero-sub">Research · Script · Audio</p>
 </div>
 """, unsafe_allow_html=True)
 
-# ── Input card ─────────────────────────────────────────────────────────────────
-st.markdown('<div class="pp-input-card">', unsafe_allow_html=True)
-st.markdown('<div class="pp-input-label">What should the episode be about?</div>',
-            unsafe_allow_html=True)
+# ── Search form ────────────────────────────────────────────────────────────────
+with st.form("search", clear_on_submit=False):
+    topic = st.text_input(
+        "topic", label_visibility="collapsed",
+        placeholder="Ask about any topic…",
+        disabled=st.session_state.generating,
+    )
+    submitted = st.form_submit_button(
+        "→",
+        disabled=st.session_state.generating,
+    )
 
-topic = st.text_input(
-    "topic", label_visibility="collapsed",
-    placeholder='e.g. "the rise of open source AI models"',
-    disabled=st.session_state.generating,
-)
-
-generate_clicked = st.button(
-    "✦ Generate Episode",
-    type="primary",
-    use_container_width=True,
-    disabled=st.session_state.generating or not (topic or "").strip(),
-)
-st.markdown('</div>', unsafe_allow_html=True)
-
-# ── Pipeline execution ─────────────────────────────────────────────────────────
-if generate_clicked and topic.strip():
+# ── Trigger pipeline ───────────────────────────────────────────────────────────
+if submitted and (topic or "").strip():
     for k in ("script", "research_data", "output_path", "episode_meta", "error"):
         st.session_state[k] = None
-    st.session_state.generating   = True
-    st.session_state.show_history = False
+    st.session_state.generating = True
 
-    stage_slot    = st.empty()
-    progress_slot = st.progress(0)
-    status_slot   = st.empty()
+    stage_slot = st.empty()
 
     try:
         config.validate()
-        script, rd, out, meta = run_pipeline(
-            topic.strip(), stage_slot, progress_slot, status_slot
-        )
+        script, rd, out, meta = run_pipeline(topic.strip(), stage_slot)
         st.session_state.script        = script
         st.session_state.research_data = rd
         st.session_state.output_path   = out
@@ -867,61 +919,55 @@ if generate_clicked and topic.strip():
 
 # ── Error ──────────────────────────────────────────────────────────────────────
 if st.session_state.error:
-    st.markdown(f"""
-    <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);
-                border-radius:12px;padding:1rem 1.25rem;color:#fca5a5;font-size:0.88rem;">
-      ⚠️ {st.session_state.error}
-    </div>""", unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="pp-error">⚠ {st.session_state.error}</div>',
+        unsafe_allow_html=True)
 
 # ── Results ────────────────────────────────────────────────────────────────────
 if st.session_state.output_path and os.path.exists(st.session_state.output_path):
     meta = st.session_state.episode_meta or {}
 
-    st.markdown(
-        f'<p class="result-topic">{meta.get("topic","Episode")}</p>',
-        unsafe_allow_html=True)
-
-    ts_str = (datetime.fromisoformat(meta["timestamp"]).strftime("%B %d, %Y · %H:%M")
+    ts_str = (datetime.fromisoformat(meta["timestamp"]).strftime("%b %d, %Y · %H:%M")
               if meta.get("timestamp") else "")
+
+    # Episode header
     st.markdown(f"""
-    <div class="meta-row">
-      <span class="meta-item"><span class="meta-icon">📅</span>{ts_str}</span>
-      <span class="meta-item"><span class="meta-icon">⏱</span>{_fmt_dur(meta.get("duration_s",0))}</span>
-      <span class="meta-item"><span class="meta-icon">🎤</span>{meta.get("turns","?")} turns</span>
-      <span class="meta-item"><span class="meta-icon">📝</span>{meta.get("words",0):,} words</span>
-      <span class="meta-item"><span class="meta-icon">💾</span>{meta.get("size_mb",0):.1f} MB</span>
+    <div class="ep-header">
+      <div class="ep-topic">{meta.get('topic','Episode')}</div>
+      <div class="ep-meta">
+        <span>{ts_str}</span>
+        <span>{_fmt(meta.get('duration_s',0))}</span>
+        <span>{meta.get('turns','?')} turns</span>
+        <span>{meta.get('words',0):,} words</span>
+        <span>{meta.get('size_mb',0):.1f} MB</span>
+      </div>
     </div>
     """, unsafe_allow_html=True)
 
     render_player(st.session_state.output_path, meta)
 
-    st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
-
     # Transcript
-    if st.session_state.script:
-        with st.expander("📜  Transcript", expanded=False):
-            turns_html = '<div class="transcript-wrap">'
+    with st.expander("Transcript"):
+        if st.session_state.script:
+            turns_html = '<div class="turns">'
             for turn in st.session_state.script:
-                host = turn["host"]
-                line = turn["line"]
-                is_ryan    = host == config.HOST_A_NAME
-                av_cls     = "ryan-avatar"  if is_ryan else "jenny-avatar"
-                bub_cls    = "ryan-bubble"  if is_ryan else "jenny-bubble"
-                lbl_cls    = "ryan-label"   if is_ryan else "jenny-label"
-                initials   = host[:2].upper()
+                is_ryan   = turn["host"] == config.HOST_A_NAME
+                init_cls  = "ryan-init"  if is_ryan else "jenny-init"
+                name_cls  = "ryan-name"  if is_ryan else "jenny-name"
+                initials  = turn["host"][:2].upper()
                 turns_html += f"""
                 <div class="turn">
-                  <div class="turn-avatar {av_cls}">{initials}</div>
-                  <div class="turn-bubble {bub_cls}">
-                    <div class="turn-label {lbl_cls}">{host}</div>
-                    {line}
+                  <div class="turn-init {init_cls}">{initials}</div>
+                  <div class="turn-text">
+                    <div class="turn-name {name_cls}">{turn['host']}</div>
+                    <div class="turn-line">{turn['line']}</div>
                   </div>
                 </div>"""
             turns_html += '</div>'
             st.markdown(turns_html, unsafe_allow_html=True)
-    else:
-        with st.expander("📜  Transcript", expanded=False):
-            st.caption("Transcript not available for episodes loaded from history.")
+        else:
+            st.markdown('<p class="empty-text">Transcript not available for loaded episodes.</p>',
+                        unsafe_allow_html=True)
 
     # Research brief
     sources = (
@@ -930,91 +976,49 @@ if st.session_state.output_path and os.path.exists(st.session_state.output_path)
             for u in meta.get("sources", [])]
     )
     if sources:
-        with st.expander("🔍  Research Brief", expanded=False):
+        with st.expander("Sources"):
+            html = '<div>'
             for src in sources:
-                score_pct = int((src.get("score") or 0) * 100)
-                title = src.get("title") or src.get("url", "")
-                st.markdown(
-                    f'<div style="font-size:0.88rem;font-weight:600;color:#e2e8f0;'
-                    f'margin-bottom:4px;">{title}</div>',
-                    unsafe_allow_html=True)
-                if src.get("snippet"):
-                    st.markdown(
-                        f'<div style="font-size:0.82rem;color:#64748b;margin-bottom:6px;'
-                        f'line-height:1.5">{src["snippet"]}</div>',
-                        unsafe_allow_html=True)
-                c1, c2 = st.columns([5, 1])
-                c1.markdown(
-                    f"<a href='{src['url']}' target='_blank' "
-                    f"style='font-size:0.78rem;color:#8b5cf6;text-decoration:none;'>"
-                    f"↗ {src['url']}</a>",
-                    unsafe_allow_html=True)
-                if score_pct:
-                    c2.markdown(
-                        f"<div style='font-size:0.72rem;color:#475569;text-align:right;"
-                        f"padding-top:2px'>{score_pct}% match</div>",
-                        unsafe_allow_html=True)
-                st.markdown(
-                    '<div style="height:1px;background:rgba(255,255,255,0.04);'
-                    'margin:10px 0"></div>', unsafe_allow_html=True)
+                title   = src.get("title") or src.get("url", "")
+                snippet = src.get("snippet", "")
+                url     = src.get("url", "")
+                snippet_html = f'<div class="source-snippet">{snippet}</div>' if snippet else ""
+                html += f"""
+                <div class="source-item">
+                  <div class="source-title">{title}</div>
+                  {snippet_html}
+                  <a class="source-url" href="{url}" target="_blank">↗ {url}</a>
+                </div>"""
+            html += '</div>'
+            st.markdown(html, unsafe_allow_html=True)
 
 # ── Empty state ────────────────────────────────────────────────────────────────
 elif not st.session_state.generating and not st.session_state.error:
     st.markdown("""
-    <div class="empty-state">
-      <div class="empty-state-icon">🎙️</div>
-      <div class="empty-state-text">Your episode will appear here</div>
-      <div class="empty-state-sub">
-        Enter a topic above — Parsepod handles the rest.
-      </div>
+    <div class="empty">
+      <div class="empty-ring">◎</div>
+      <p class="empty-text">Your episode will appear here</p>
     </div>
     """, unsafe_allow_html=True)
 
-# ── History section ────────────────────────────────────────────────────────────
-st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
+# ── Recent episodes ────────────────────────────────────────────────────────────
+history = _load_history()
+if history:
+    st.markdown('<div class="recent-heading">Recent Episodes</div>',
+                unsafe_allow_html=True)
 
-hist_col1, hist_col2 = st.columns([4, 1])
-with hist_col1:
-    st.markdown(
-        '<p style="font-size:0.88rem;font-weight:600;color:#334155;margin:0">'
-        'Episode History</p>',
-        unsafe_allow_html=True)
-with hist_col2:
-    toggle_label = "▲ Hide" if st.session_state.show_history else "▼ Show"
-    if st.button(toggle_label, key="hist_toggle", use_container_width=True):
-        st.session_state.show_history = not st.session_state.show_history
-        st.rerun()
-
-if st.session_state.show_history:
-    history = _load_history()
-    if not history:
-        st.markdown(
-            '<p style="text-align:center;color:#334155;font-size:0.85rem;padding:1.5rem 0">'
-            'No episodes yet.</p>', unsafe_allow_html=True)
-    else:
-        # Render in a 2-column grid using Streamlit columns
-        pairs = [history[i:i+2] for i in range(0, len(history), 2)]
-        for pair in pairs:
-            cols = st.columns(2)
-            for col, ep in zip(cols, pair):
-                with col:
-                    ts = datetime.fromisoformat(ep["timestamp"])
-                    st.markdown(f"""
-                    <div class="hist-card">
-                      <div class="hist-topic">{ep['topic']}</div>
-                      <div class="hist-meta">
-                        {ts.strftime('%b %d, %Y')} ·
-                        {_fmt_dur(ep.get('duration_s',0))} ·
-                        {ep.get('turns','?')} turns
-                      </div>
-                      <span class="hist-pill">{ep.get('size_mb',0):.1f} MB</span>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    if st.button("Load episode", key=f"load_{ep['timestamp']}",
-                                 use_container_width=True):
-                        st.session_state.output_path   = ep["mp3_path"]
-                        st.session_state.episode_meta  = ep
-                        st.session_state.script        = None
-                        st.session_state.research_data = None
-                        st.session_state.show_history  = False
-                        st.rerun()
+    for ep in history[:6]:
+        col1, col2 = st.columns([1, 5], vertical_alignment="center")
+        with col2:
+            st.markdown(f"""
+            <div class="recent-item">
+              <span class="recent-topic">{ep['topic']}</span>
+              <span class="recent-dur">{_fmt(ep.get('duration_s',0))}</span>
+            </div>""", unsafe_allow_html=True)
+        with col1:
+            if st.button("Load", key=f"load_{ep['timestamp']}"):
+                st.session_state.output_path   = ep["mp3_path"]
+                st.session_state.episode_meta  = ep
+                st.session_state.script        = None
+                st.session_state.research_data = None
+                st.rerun()
