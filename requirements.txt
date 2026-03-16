@@ -9,6 +9,7 @@ edge-tts
 
 # Audio assembly
 pydub
+audioop-lts; python_version >= "3.13"  # backports audioop removed in Python 3.13
 
 # Streamlit UI
 streamlit
