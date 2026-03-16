@@ -17,6 +17,34 @@ import edge_tts
 import config
 
 
+# ── Voice reference ────────────────────────────────────────────────────────────
+# Swap these in .env (HOST_A_VOICE / HOST_B_VOICE) to change the voices.
+#
+# British male                British female
+# ─────────────────────────── ──────────────────────────────
+# en-GB-ThomasNeural  ← current (natural, measured)
+# en-GB-RyanNeural    (clear, slightly formal)
+# en-GB-OliverNeural  (warm, conversational)
+# en-GB-NoahNeural    (younger, relaxed)
+#
+#                             en-GB-LibbyNeural   ← current (warm, expressive)
+#                             en-GB-SoniaNeural   (crisp, professional)
+#                             en-GB-MaisieNeural  (light, friendly)
+#
+# American male               American female
+# ─────────────────────────── ──────────────────────────────
+# en-US-GuyNeural     (neutral, broadcast)
+# en-US-AndrewNeural  (deep, authoritative)
+# en-US-BrianNeural   (upbeat, conversational)
+#
+#                             en-US-JennyNeural   (warm, energetic)
+#                             en-US-AriaNeural    (natural, expressive)
+#                             en-US-SaraNeural    (calm, clear)
+#
+# Run `edge-tts --list-voices` in your terminal to see all 400+ options.
+# ──────────────────────────────────────────────────────────────────────────────
+
+
 async def synthesise_turn(text: str, voice: str, output_path: str) -> str:
     """
     Convert a single line of dialogue to speech and save it as an MP3.

@@ -14,8 +14,8 @@ AI-powered podcast generator that searches the web for a given topic, summarises
 
 | Host | Voice | Personality |
 |------|-------|-------------|
-| Ryan (Host A) | `en-GB-RyanNeural` | British male, analytical and dry |
-| Jenny (Host B) | `en-US-JennyNeural` | American female, warm and curious |
+| Ryan (Host A) | `en-GB-ThomasNeural` | British male, analytical and dry |
+| Jenny (Host B) | `en-GB-LibbyNeural` | British female, warm and curious |
 
 ## Project Structure
 
