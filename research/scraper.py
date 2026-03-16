@@ -13,8 +13,12 @@ from tavily import AsyncTavilyClient
 import config
 
 
-# Maximum number of URLs to scrape (keeps costs and latency reasonable)
-MAX_URLS = 5
+# Maximum number of URLs to scrape (keeps Tavily costs and Gemini quota low)
+MAX_URLS = 3
+
+# Hard cap on characters kept per scraped page before passing to Gemini.
+# Prevents token-budget blowout on very long articles (~5k chars ≈ 1.25k tokens).
+MAX_CHARS_PER_PAGE = 5_000
 
 # Minimum character length to consider a scraped result useful
 MIN_CONTENT_LENGTH = 200
@@ -57,7 +61,7 @@ async def scrape_urls(urls: list[str]) -> list[dict[str, Any]]:
         extracted.append(
             {
                 "url":     result.get("url", ""),
-                "content": content,
+                "content": content[:MAX_CHARS_PER_PAGE],
             }
         )
 
