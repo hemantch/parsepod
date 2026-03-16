@@ -56,8 +56,8 @@ def validate():
     missing = []
     if not TAVILY_API_KEY:
         missing.append("TAVILY_API_KEY")
-    if not GEMINI_API_KEY:
-        missing.append("GEMINI_API_KEY")
+    if not GROQ_API_KEY:
+        missing.append("GROQ_API_KEY")
     if missing:
         raise EnvironmentError(
             f"Missing required environment variables: {', '.join(missing)}\n"
