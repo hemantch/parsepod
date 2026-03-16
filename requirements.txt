@@ -1,0 +1,21 @@
+# Web search and scraping
+tavily-python
+
+# LLM - Gemini (new SDK — replaces deprecated google-generativeai)
+google-genai
+
+# Text to speech
+edge-tts
+
+# Audio assembly
+pydub
+
+# Streamlit UI
+streamlit
+
+# Environment variables
+python-dotenv
+
+# Async support
+asyncio
+aiofiles
