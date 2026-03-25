@@ -621,13 +621,12 @@ def render_stages(active: int, detail: str = "", tts_done: int = 0, tts_total: i
           <div class="stage-status {status_cls}">{status}</div>
         </div>"""
 
-    html = f"""
+    return f"""
     <div class="stages">
       {row(1, "✓", "↗", "↗", "Research")}
       {row(2, "✓", "✎", "✎", "Script")}
       {row(3, "✓", "◎", "◎", "Audio")}
     </div>"""
-    st.markdown(html, unsafe_allow_html=True)
 
 
 # ── Custom audio player ────────────────────────────────────────────────────────
@@ -809,16 +808,14 @@ def run_pipeline(topic: str, stage_slot):
 
     # ── Research ───────────────────────────────────────────────────────────────
     st.session_state.stage = 1
-    with stage_slot.container():
-        render_stages(1, detail="Searching the web…")
+    stage_slot.markdown(render_stages(1, detail="Searching the web…"), unsafe_allow_html=True)
 
     research_data = _run(search_and_scrape(topic))
     n_sources = len(research_data.get("sources", []))
 
     # ── Script ─────────────────────────────────────────────────────────────────
     st.session_state.stage = 2
-    with stage_slot.container():
-        render_stages(2, detail=f"Found {n_sources} sources · Writing with Groq…")
+    stage_slot.markdown(render_stages(2, detail=f"Found {n_sources} sources · Writing with Groq…"), unsafe_allow_html=True)
 
     script  = _run(generate_script(research_data))
     n_turns = len(script)
@@ -833,18 +830,16 @@ def run_pipeline(topic: str, stage_slot):
 
     segment_paths = []
     for i, turn in enumerate(script):
-        with stage_slot.container():
-            render_stages(3,
+        stage_slot.markdown(render_stages(3,
                 detail=f"{turn['host']} · turn {i+1}/{n_turns}",
-                tts_done=i, tts_total=n_turns)
+                tts_done=i, tts_total=n_turns), unsafe_allow_html=True)
 
         path = os.path.join(config.TEMP_DIR, f"turn_{i:03d}_{turn['host'].lower()}.mp3")
         _run(synthesise_turn(turn["line"], voice_map[turn["host"]], path))
         segment_paths.append(path)
 
     # ── Assemble ───────────────────────────────────────────────────────────────
-    with stage_slot.container():
-        render_stages(3, detail="Assembling MP3…", tts_done=n_turns, tts_total=n_turns)
+    stage_slot.markdown(render_stages(3, detail="Assembling MP3…", tts_done=n_turns, tts_total=n_turns), unsafe_allow_html=True)
 
     output_path = assemble_episode(segment_paths)
 
@@ -853,8 +848,7 @@ def run_pipeline(topic: str, stage_slot):
     size_mb = os.path.getsize(output_path) / (1024 * 1024)
 
     st.session_state.stage = 4
-    with stage_slot.container():
-        render_stages(4)
+    stage_slot.markdown(render_stages(4), unsafe_allow_html=True)
 
     meta = {
         "topic": topic, "timestamp": datetime.now().isoformat(),
