@@ -610,23 +610,25 @@ def render_stages(active: int, detail: str = "", tts_done: int = 0, tts_total: i
 
         icon = icon_done if active > n else (icon_active if active == n else icon_wait)
 
-        return f"""
-        <div class="stage-row">
-          <div class="stage-icon {icon_cls}">{icon}</div>
-          <div class="stage-body">
-            <div class="stage-label {lbl_cls}">{label}</div>
-            {detail_html}{sub}
-          </div>
-          {spinner}
-          <div class="stage-status {status_cls}">{status}</div>
-        </div>"""
+        return (
+            f'<div class="stage-row">'
+            f'<div class="stage-icon {icon_cls}">{icon}</div>'
+            f'<div class="stage-body">'
+            f'<div class="stage-label {lbl_cls}">{label}</div>'
+            f'{detail_html}{sub}'
+            f'</div>'
+            f'{spinner}'
+            f'<div class="stage-status {status_cls}">{status}</div>'
+            f'</div>'
+        )
 
-    return f"""
-    <div class="stages">
-      {row(1, "✓", "↗", "↗", "Research")}
-      {row(2, "✓", "✎", "✎", "Script")}
-      {row(3, "✓", "◎", "◎", "Audio")}
-    </div>"""
+    return (
+        '<div class="stages">'
+        + row(1, "✓", "↗", "↗", "Research")
+        + row(2, "✓", "✎", "✎", "Script")
+        + row(3, "✓", "◎", "◎", "Audio")
+        + '</div>'
+    )
 
 
 # ── Custom audio player ────────────────────────────────────────────────────────
