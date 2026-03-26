@@ -182,6 +182,7 @@ color: #475569;
 line-height: 1.75;
 max-width: 520px;
 margin: 0 auto 2.5rem;
+text-align: center;
 }
 /* ── Centered input area ─────────────────────────────────────────────────── */
 .pp-input-area {
@@ -194,8 +195,9 @@ font-weight: 700;
 letter-spacing: 0.12em;
 text-transform: uppercase;
 color: #334155;
-margin-bottom: 0.65rem;
-text-align: left;
+max-width: 600px;
+margin: 0 auto 0.65rem;
+text-align: center;
 }
 .pp-host-chips {
 display: flex;
