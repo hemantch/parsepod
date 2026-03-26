@@ -101,3 +101,17 @@ Never indent HTML passed to `st.markdown(..., unsafe_allow_html=True)` with 4+ s
 - Each module has a single responsibility
 - No summarisation step — content is capped at the scraper level (5k chars/page)
 - No retry/fallback logic in the LLM layer — fail fast and surface errors
+
+## UI State (March 2026)
+
+- The UI was fully redesigned with a dark broadcast studio aesthetic (background `#0a0a0f`, purple → cyan gradient, glassmorphism)
+- **Hero section is a single centered column** — the previous two-column layout (`st.columns([3, 2])`) was removed entirely
+- All hero elements stack vertically and are center-aligned; `!important` CSS overrides are required to beat Streamlit's default left-align styles
+- Subheadline (`.pp-sub`): `text-align: center !important; width: 100% !important; max-width: 520px !important; margin: 0 auto !important;`
+- "YOUR TOPIC" label (`.pp-card-label`): `text-align: center !important; display: block !important; width: 100% !important; max-width: 600px !important; margin: 0 auto !important;`
+- Input form (`[data-testid="stForm"]`): `max-width: 600px !important; margin: 0 auto !important;`
+- Host chips (`.pp-host-chips`) are centered with `justify-content: center`; they display **Thomas** and **Libby** (the voice names, not Ryan/Jenny)
+- Progress stages during generation use `st.empty()` populated via `stage_slot.markdown(..., unsafe_allow_html=True)`
+- Navbar (fixed, frosted-glass) includes: How it works · About · Launch Studio CTA button
+- Footer links: GitHub · Docs · Privacy
+- **Rule:** when overriding Streamlit default styles, always use `!important` and the most specific selector available — bare class selectors are often not specific enough
