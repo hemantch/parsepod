@@ -38,7 +38,7 @@ html, body, [class*="css"] { font-family: 'Inter', -apple-system, sans-serif !im
 /* ── Canvas ─────────────────────────────────────────────────────────────── */
 .stApp {
 background:
-  radial-gradient(ellipse 70% 50% at 15% 25%, rgba(168,85,247,0.09) 0%, transparent 60%),
+  radial-gradient(ellipse 80% 50% at 50% 0%, rgba(168,85,247,0.1) 0%, transparent 55%),
   radial-gradient(ellipse 50% 40% at 85% 75%, rgba(34,211,238,0.06) 0%, transparent 60%),
   #0a0a0f !important;
 }
@@ -136,10 +136,11 @@ transition: opacity 0.2s, transform 0.15s;
 .pp-nav-cta:hover { opacity: 0.88; transform: translateY(-1px); }
 
 /* ════════════════════════════════════════════════════════════════════════════
-   HERO
+   HERO  (single centered column)
    ════════════════════════════════════════════════════════════════════════════ */
-.pp-hero-left {
-padding: 3rem 2rem 3rem 0;
+.pp-hero {
+text-align: center;
+padding: 4rem 0 1.5rem;
 animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) both;
 }
 .pp-eyebrow {
@@ -164,7 +165,7 @@ border-radius: 50%;
 animation: dotBlink 2s ease-in-out infinite;
 }
 .pp-h1 {
-font-size: clamp(2.4rem, 4.5vw, 3.8rem);
+font-size: clamp(2.6rem, 5vw, 4.2rem);
 font-weight: 900;
 letter-spacing: -0.045em;
 line-height: 1.04;
@@ -179,14 +180,62 @@ font-size: 1rem;
 font-weight: 300;
 color: #475569;
 line-height: 1.75;
-margin-bottom: 2.25rem;
-max-width: 440px;
+max-width: 520px;
+margin: 0 auto 2.5rem;
 }
+/* ── Centered input area ─────────────────────────────────────────────────── */
+.pp-input-area {
+max-width: 600px;
+margin: 0 auto;
+}
+.pp-card-label {
+font-size: 0.65rem;
+font-weight: 700;
+letter-spacing: 0.12em;
+text-transform: uppercase;
+color: #334155;
+margin-bottom: 0.65rem;
+text-align: left;
+}
+.pp-host-chips {
+display: flex;
+gap: 10px;
+margin-top: 1rem;
+flex-wrap: wrap;
+justify-content: center;
+}
+.pp-host-chip {
+display: flex;
+align-items: center;
+gap: 7px;
+background: rgba(255,255,255,0.03);
+border: 1px solid rgba(255,255,255,0.06);
+border-radius: 20px;
+padding: 5px 12px 5px 7px;
+font-size: 0.73rem;
+font-weight: 500;
+color: #475569;
+}
+.pp-chip-avatar {
+width: 20px; height: 20px;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 0.5rem;
+font-weight: 800;
+letter-spacing: 0.04em;
+}
+.pp-chip-a { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
+.pp-chip-b { background: rgba(249,115,22,0.12); color: #fb923c; border: 1px solid rgba(249,115,22,0.2); }
+/* ── CTA row ─────────────────────────────────────────────────────────────── */
 .pp-cta-row {
 display: flex;
 align-items: center;
+justify-content: center;
 gap: 1.25rem;
 flex-wrap: wrap;
+margin-top: 1.75rem;
 margin-bottom: 2.5rem;
 }
 .pp-hero-btn {
@@ -214,11 +263,14 @@ text-decoration: none;
 transition: color 0.2s;
 }
 .pp-text-link:hover { color: #64748b; }
+/* ── Soundwave ───────────────────────────────────────────────────────────── */
 .pp-soundwave {
 display: flex;
 align-items: center;
+justify-content: center;
 gap: 3px;
 height: 26px;
+margin: 0 auto;
 }
 .sw-bar {
 width: 3px;
@@ -228,70 +280,12 @@ animation: swPulse 1.8s ease-in-out infinite;
 transform-origin: bottom center;
 }
 
-/* ── Right column: input card (uses :has() to style the column itself) ────── */
-[data-testid="column"]:has(.pp-card-marker) {
-background: rgba(255,255,255,0.025) !important;
-border: 1px solid rgba(255,255,255,0.07) !important;
-border-radius: 24px !important;
-padding: 2rem 1.75rem 1.75rem !important;
-backdrop-filter: blur(20px) !important;
-box-shadow: 0 24px 80px rgba(0,0,0,0.45), 0 0 60px rgba(168,85,247,0.06) !important;
-position: relative !important;
-align-self: flex-start !important;
-margin-top: 2.5rem !important;
-overflow: hidden !important;
-}
-[data-testid="column"]:has(.pp-card-marker)::before {
-content: '';
-position: absolute;
-top: 0; left: 0; right: 0;
-height: 1px;
-background: linear-gradient(90deg, transparent, rgba(168,85,247,0.45), rgba(34,211,238,0.3), transparent);
-border-radius: 24px 24px 0 0;
-}
-.pp-card-label {
-font-size: 0.68rem;
-font-weight: 700;
-letter-spacing: 0.12em;
-text-transform: uppercase;
-color: #334155;
-margin-bottom: 0.9rem;
-}
-.pp-host-chips {
-display: flex;
-gap: 10px;
-margin-top: 1rem;
-flex-wrap: wrap;
-}
-.pp-host-chip {
-display: flex;
-align-items: center;
-gap: 7px;
-background: rgba(255,255,255,0.03);
-border: 1px solid rgba(255,255,255,0.06);
-border-radius: 20px;
-padding: 5px 12px 5px 7px;
-font-size: 0.73rem;
-font-weight: 500;
-color: #475569;
-}
-.pp-chip-avatar {
-width: 20px; height: 20px;
-border-radius: 50%;
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 0.5rem;
-font-weight: 800;
-letter-spacing: 0.04em;
-}
-.pp-chip-a { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
-.pp-chip-b { background: rgba(249,115,22,0.12); color: #fb923c; border: 1px solid rgba(249,115,22,0.2); }
-
 /* ════════════════════════════════════════════════════════════════════════════
    FORM OVERRIDES
    ════════════════════════════════════════════════════════════════════════════ */
 [data-testid="stForm"] {
+max-width: 600px !important;
+margin: 0 auto !important;
 background: rgba(255,255,255,0.035) !important;
 border: 1px solid rgba(255,255,255,0.08) !important;
 border-radius: 50px !important;
@@ -1101,7 +1095,7 @@ st.markdown(
 unsafe_allow_html=True,
 )
 
-# ── Hero — two columns ─────────────────────────────────────────────────────────
+# ── Hero — single centered column ─────────────────────────────────────────────
 _sw_heights = [4, 7, 12, 18, 14, 22, 10, 18, 26, 20, 22, 15, 20, 10, 16, 8, 12, 6, 9, 14]
 _sw_delays  = [0,.08,.16,.24,.12,.20,.04,.32,.08,.28,.16,.36,.24,.40,.20,.44,.12,.28,.36,.20]
 _sw_html = ''.join(
@@ -1109,46 +1103,49 @@ _sw_html = ''.join(
     for h, d in zip(_sw_heights, _sw_delays)
 )
 
-col_left, col_right = st.columns([3, 2], gap="large")
+# 1–3: badge, headline, subheadline
+st.markdown(
+'<div class="pp-hero">'
+'<div class="pp-eyebrow"><div class="pp-eyebrow-dot"></div>AI Podcast Generator</div>'
+'<h1 class="pp-h1">Drop a topic.<br>Get a podcast.</h1>'
+'<p class="pp-sub">Parsepod researches the web, writes the script, and records two British hosts \u2014 in under a minute.</p>'
+'</div>',
+unsafe_allow_html=True,
+)
 
-with col_left:
-    st.markdown(
-    '<div class="pp-hero-left">'
-    '<div class="pp-eyebrow"><div class="pp-eyebrow-dot"></div>AI Podcast Generator</div>'
-    '<h1 class="pp-h1">Drop a topic.<br>Get a podcast.</h1>'
-    '<p class="pp-sub">Parsepod researches the web, writes the script, and records two British hosts \u2014 in under a minute.</p>'
-    '<div class="pp-cta-row">'
-    '<span class="pp-hero-btn">🎙 Generate My Podcast</span>'
-    '<a class="pp-text-link" href="#">See how it works \u2193</a>'
-    '</div>'
-    f'<div class="pp-soundwave">{_sw_html}</div>'
-    '</div>',
-    unsafe_allow_html=True,
+# 4–5: "YOUR TOPIC" label + input form (centered, max-width 600px via CSS)
+st.markdown('<p class="pp-card-label">🎙 Your topic</p>', unsafe_allow_html=True)
+with st.form("search", clear_on_submit=False):
+    topic = st.text_input(
+        "topic", label_visibility="collapsed",
+        placeholder="Try: The future of AI in healthcare\u2026",
+        disabled=st.session_state.generating,
+    )
+    submitted = st.form_submit_button(
+        "Generate \u2192",
+        disabled=st.session_state.generating,
     )
 
-with col_right:
-    # Marker div — CSS :has() uses this to style the whole column as a card
-    st.markdown('<div class="pp-card-marker"></div>', unsafe_allow_html=True)
-    st.markdown('<p class="pp-card-label">🎙 Your topic</p>', unsafe_allow_html=True)
-    with st.form("search", clear_on_submit=False):
-        topic = st.text_input(
-            "topic", label_visibility="collapsed",
-            placeholder="Try: The future of AI in healthcare\u2026",
-            disabled=st.session_state.generating,
-        )
-        submitted = st.form_submit_button(
-            "Generate \u2192",
-            disabled=st.session_state.generating,
-        )
-    host_a = config.HOST_A_NAME
-    host_b = config.HOST_B_NAME
-    st.markdown(
-    '<div class="pp-host-chips">'
-    f'<div class="pp-host-chip"><div class="pp-chip-avatar pp-chip-a">{host_a[:2].upper()}</div>{host_a} 🎙</div>'
-    f'<div class="pp-host-chip"><div class="pp-chip-avatar pp-chip-b">{host_b[:2].upper()}</div>{host_b} 🎙</div>'
-    '</div>',
-    unsafe_allow_html=True,
-    )
+# 6: host chips — centered side by side
+host_a = config.HOST_A_NAME
+host_b = config.HOST_B_NAME
+st.markdown(
+'<div class="pp-host-chips">'
+f'<div class="pp-host-chip"><div class="pp-chip-avatar pp-chip-a">{host_a[:2].upper()}</div>{host_a} 🎙</div>'
+f'<div class="pp-host-chip"><div class="pp-chip-avatar pp-chip-b">{host_b[:2].upper()}</div>{host_b} 🎙</div>'
+'</div>',
+unsafe_allow_html=True,
+)
+
+# 7: CTA buttons + soundwave
+st.markdown(
+'<div class="pp-cta-row">'
+'<span class="pp-hero-btn">🎙 Generate My Podcast</span>'
+'<a class="pp-text-link" href="#">See how it works \u2193</a>'
+'</div>'
+f'<div class="pp-soundwave">{_sw_html}</div>',
+unsafe_allow_html=True,
+)
 
 # ── Placeholder cycler ────────────────────────────────────────────────────────
 components.html("""<script>
