@@ -176,13 +176,14 @@ background-clip: text;
 margin-bottom: 1.2rem;
 }
 .pp-sub {
-font-size: 1rem;
-font-weight: 300;
-color: #475569;
-line-height: 1.75;
-max-width: 520px;
-margin: 0 auto 2.5rem;
-text-align: center;
+font-size: 1rem !important;
+font-weight: 300 !important;
+color: #475569 !important;
+line-height: 1.75 !important;
+width: 100% !important;
+max-width: 520px !important;
+margin: 0 auto 2.5rem !important;
+text-align: center !important;
 }
 /* ── Centered input area ─────────────────────────────────────────────────── */
 .pp-input-area {
@@ -190,14 +191,16 @@ max-width: 600px;
 margin: 0 auto;
 }
 .pp-card-label {
-font-size: 0.65rem;
-font-weight: 700;
-letter-spacing: 0.12em;
-text-transform: uppercase;
-color: #334155;
-max-width: 600px;
-margin: 0 auto 0.65rem;
-text-align: center;
+font-size: 0.65rem !important;
+font-weight: 700 !important;
+letter-spacing: 0.12em !important;
+text-transform: uppercase !important;
+color: #334155 !important;
+width: 100% !important;
+max-width: 600px !important;
+margin: 0 auto 0.65rem !important;
+text-align: center !important;
+display: block !important;
 }
 .pp-host-chips {
 display: flex;
