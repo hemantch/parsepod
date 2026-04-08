@@ -16,9 +16,10 @@ import config
 # Maximum number of URLs to scrape (keeps Tavily costs and Gemini quota low)
 MAX_URLS = 3
 
-# Hard cap on characters kept per scraped page before passing to Gemini.
-# Prevents token-budget blowout on very long articles (~5k chars ≈ 1.25k tokens).
-MAX_CHARS_PER_PAGE = 5_000
+# Hard cap on characters kept per scraped page before passing to the LLM.
+# Groq free tier TPM limit is 12k tokens; 3k chars/page keeps the total request
+# well within budget (~3 pages × 3k chars ≈ 2.25k tokens of content).
+MAX_CHARS_PER_PAGE = 3_000
 
 # Minimum character length to consider a scraped result useful
 MIN_CONTENT_LENGTH = 200
