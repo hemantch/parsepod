@@ -95,7 +95,7 @@ def _call_groq(topic: str, research_text: str, target_words: int) -> str:
         model=GROQ_MODEL,
         response_format={"type": "json_object"},
         temperature=0.9,
-        max_tokens=8192,
+        max_tokens=2000,  # 3-min episode ≈ 450 words ≈ 600 tokens; Groq TPM = input+max_tokens
         messages=[
             {"role": "system", "content": build_system_prompt()},
             {"role": "user",   "content": build_user_prompt(topic, research_text, target_words)},
