@@ -5,20 +5,20 @@ AI-powered podcast generator that searches the web for a given topic, generates 
 ## Tech Stack
 
 - **Tavily API** — web search and scraping (`AsyncTavilyClient`)
-- **Groq API** — LLM brain, model `llama-3.3-70b-versatile`, JSON mode
-- **Edge TTS** — text to speech, free, no API key needed
-- **pydub** + **ffmpeg** — audio assembly and MP3 export
+- **Gemini 2.5 Flash** — LLM brain, model `gemini-2.5-flash`, JSON mode via `response_mime_type`
+- **Gemini 3.1 Flash TTS** — multi-speaker text to speech, model `gemini-3.1-flash-tts-preview`
+- **pydub** + **ffmpeg** — PCM → MP3 conversion and audio assembly
 - **Streamlit** — premium dark UI (purple/indigo theme, glassmorphism)
 
 ## Hosts
 
 | Host | Voice | Personality |
 |------|-------|-------------|
-| Ryan (Host A) | `en-GB-ThomasNeural` | British male, analytical, dry wit |
-| Jenny (Host B) | `en-GB-LibbyNeural` | British female, warm, curious |
+| Thomas (Host A) | `Charon` | British male, analytical, dry wit |
+| Libby (Host B) | `Kore` | British female, warm, curious |
 
 To change voices: edit `HOST_A_VOICE` / `HOST_B_VOICE` in `.env`.
-Full voice reference with alternatives is in `audio/tts.py`.
+Available Gemini TTS voices: https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-tts-preview
 
 ## Project Structure
 
@@ -28,15 +28,15 @@ parsepod/
 │   ├── searcher.py      # Tavily search (MAX_RESULTS=8, advanced depth)
 │   └── scraper.py       # Tavily extract (MAX_URLS=3, 5k chars/page cap)
 ├── script/
-│   ├── writer.py        # Groq script generation (llama-3.3-70b-versatile)
+│   ├── writer.py        # Gemini script generation (gemini-2.5-flash, JSON mode)
 │   └── prompts.py       # System + user prompt builders
 ├── audio/
-│   ├── tts.py           # Edge TTS synthesis, sequential per turn
-│   └── assembler.py     # pydub MP3 assembly, 450ms silence between turns
+│   ├── tts.py           # Gemini multi-speaker TTS, chunked (10 turns/call), checkpointed
+│   └── assembler.py     # pydub MP3 assembly, 450ms silence between chunks
 ├── ui/
 │   └── app.py           # Streamlit UI — premium studio theme
 ├── output/              # Final MP3 + JSON metadata files
-├── temp/                # Intermediate per-turn MP3 segments
+├── temp/                # Intermediate per-chunk MP3 segments (checkpointed)
 ├── config.py            # Settings: st.secrets → os.environ → default
 ├── run.py               # CLI entry point
 ├── requirements.txt
@@ -47,12 +47,13 @@ parsepod/
 
 ```env
 TAVILY_API_KEY=your_key_here
-GROQ_API_KEY=your_key_here
+GEMINI_API_KEY=your_key_here
 PODCAST_NAME=Parsepod
-HOST_A_NAME=Ryan
-HOST_B_NAME=Jenny
-HOST_A_VOICE=en-GB-ThomasNeural
-HOST_B_VOICE=en-GB-LibbyNeural
+HOST_A_NAME=Thomas
+HOST_B_NAME=Libby
+HOST_A_VOICE=Charon
+HOST_B_VOICE=Kore
+TTS_STYLE_PROMPT=Podcast style. Natural British accents, warm and conversational, relaxed pacing.
 OUTPUT_DIR=./output
 TEMP_DIR=./temp
 EPISODE_DURATION_MINUTES=3
@@ -69,9 +70,6 @@ streamlit run ui/app.py
 
 # Run via CLI
 python run.py "topic"
-
-# List all available Edge TTS voices
-edge-tts --list-voices
 ```
 
 ## Streamlit Cloud Deployment
@@ -97,7 +95,7 @@ Never indent HTML passed to `st.markdown(..., unsafe_allow_html=True)` with 4+ s
 ## Coding Style
 
 - Clean, well-commented Python
-- `async`/`await` for Edge TTS and Tavily; Groq client is synchronous
+- `async`/`await` for Tavily; Gemini clients are synchronous (called from async context)
 - Each module has a single responsibility
 - No summarisation step — content is capped at the scraper level (5k chars/page)
 - No retry/fallback logic in the LLM layer — fail fast and surface errors
@@ -110,7 +108,7 @@ Never indent HTML passed to `st.markdown(..., unsafe_allow_html=True)` with 4+ s
 - Subheadline (`.pp-sub`): `text-align: center !important; width: 100% !important; max-width: 520px !important; margin: 0 auto !important;`
 - "YOUR TOPIC" label (`.pp-card-label`): `text-align: center !important; display: block !important; width: 100% !important; max-width: 600px !important; margin: 0 auto !important;`
 - Input form (`[data-testid="stForm"]`): `max-width: 600px !important; margin: 0 auto !important;`
-- Host chips (`.pp-host-chips`) are centered with `justify-content: center`; they display **Thomas** and **Libby** (the voice names, not Ryan/Jenny)
+- Host chips (`.pp-host-chips`) are centered with `justify-content: center`; they display **Thomas** and **Libby**
 - Progress stages during generation use `st.empty()` populated via `stage_slot.markdown(..., unsafe_allow_html=True)`
 - Navbar (fixed, frosted-glass) includes: How it works · About · Launch Studio CTA button
 - Footer links: GitHub · Docs · Privacy

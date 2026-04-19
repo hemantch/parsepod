@@ -31,15 +31,16 @@ async def main(topic: str):
     script = await generate_script(research_data)
 
     # ── Step 3: Text-to-speech ────────────────────────────────────
-    from audio.tts import synthesise_turn
+    from audio.tts import synthesise_script
     print("[3/4] Synthesising voices...")
-    # (assembler handles segment paths)
+    segment_paths = await synthesise_script(script)
 
     # ── Step 4: Assemble MP3 ──────────────────────────────────────
     from audio.assembler import assemble_episode
     print("[4/4] Assembling episode...")
+    output_path = assemble_episode(segment_paths)
 
-    print("\nDone! Episode saved to:", config.OUTPUT_DIR)
+    print("\nDone! Episode saved to:", output_path)
 
 
 if __name__ == "__main__":

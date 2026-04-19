@@ -6,7 +6,7 @@ Parsepod is an AI-powered podcast generator that researches any topic from the w
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.55-red?logo=streamlit&logoColor=white)](https://streamlit.io)
-[![Groq](https://img.shields.io/badge/Groq-LLaMA_3.3_70B-orange?logo=groq&logoColor=white)](https://console.groq.com)
+[![Gemini](https://img.shields.io/badge/Gemini-2.5_Flash-blue?logo=google&logoColor=white)](https://ai.google.dev)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 🚀 **[Live Demo → parsepod.streamlit.app](https://parsepod.streamlit.app)**
@@ -20,9 +20,10 @@ You type a topic
       ↓
 🔍 Tavily searches & scrapes the web
       ↓
-🧠 Groq (LLaMA 3.3 70B) writes a two-host script
+🧠 Gemini 2.5 Flash writes a two-host script
       ↓
-🎤 Edge TTS voices Ryan & Jenny
+🎤 Gemini 3.1 Flash TTS voices Thomas & Libby
+    (multi-speaker, 10 turns per API call)
       ↓
 🎧 pydub assembles everything into one MP3
       ↓
@@ -35,8 +36,10 @@ You type a topic
 
 | Host | Voice | Personality |
 |------|-------|-------------|
-| 🇬🇧 **Ryan** | `en-GB-RyanNeural` | British, analytical, dry wit |
-| 🇺🇸 **Jenny** | `en-US-JennyNeural` | American, warm, curious |
+| 🇬🇧 **Thomas** | `Charon` | British male, analytical, dry wit |
+| 🇬🇧 **Libby** | `Kore` | British female, warm, curious |
+
+Voices are Gemini TTS prebuilt voices. Change them via `HOST_A_VOICE` / `HOST_B_VOICE` in `.env`.
 
 ---
 
@@ -45,9 +48,9 @@ You type a topic
 | Component | Tool | Why |
 |-----------|------|-----|
 | 🔍 Search + Scrape | [Tavily API](https://tavily.com) | AI-native, returns clean text |
-| 🧠 LLM Brain | [Groq API](https://console.groq.com) — LLaMA 3.3 70B | Free tier, blazing fast inference |
-| 🎤 Text to Speech | [Edge TTS](https://github.com/rany2/edge-tts) | Free, 400+ voices, no limits |
-| 🎵 Audio Assembly | [pydub](https://github.com/jiaaro/pydub) + ffmpeg | Simple MP3 assembly |
+| 🧠 LLM Brain | [Gemini 2.5 Flash](https://ai.google.dev) — `gemini-2.5-flash` | Stable, structured JSON output |
+| 🎤 Text to Speech | [Gemini 3.1 Flash TTS](https://ai.google.dev) — `gemini-3.1-flash-tts-preview` | Native multi-speaker dialogue, natural prosody |
+| 🎵 Audio Assembly | [pydub](https://github.com/jiaaro/pydub) + ffmpeg | PCM → MP3 conversion and assembly |
 | 🖥️ Frontend | [Streamlit](https://streamlit.io) | Fast, Python-native UI |
 
 ---
@@ -58,7 +61,7 @@ You type a topic
 
 - Python 3.11+
 - ffmpeg (`brew install ffmpeg` on Mac)
-- API keys for Tavily and Groq
+- API keys for Tavily and Google Gemini
 
 ### 1. Clone the repo
 
@@ -90,13 +93,13 @@ Edit `.env` and add your keys:
 
 ```env
 TAVILY_API_KEY=tvly-your-key-here
-GROQ_API_KEY=gsk-your-key-here
+GEMINI_API_KEY=your-gemini-key-here
 EPISODE_DURATION_MINUTES=3
 ```
 
-Get your free API keys:
+Get your API keys:
 - 🔍 **Tavily** → [tavily.com](https://tavily.com) — 1,000 free searches/month
-- 🧠 **Groq** → [console.groq.com](https://console.groq.com) — free, no credit card required
+- 🧠🎤 **Gemini** → [aistudio.google.com](https://aistudio.google.com) — generous free tier; one key covers both LLM and TTS
 
 ### 5. Run the app
 
@@ -124,8 +127,8 @@ Opens at **http://localhost:8501** 🎉
 4. Click **Advanced settings** and paste the following into the **Secrets** panel:
 
    ```toml
-   TAVILY_API_KEY = "tvly-your-key-here"
-   GROQ_API_KEY   = "gsk-your-key-here"
+   TAVILY_API_KEY   = "tvly-your-key-here"
+   GEMINI_API_KEY   = "your-gemini-key-here"
    EPISODE_DURATION_MINUTES = "3"
    ```
 
@@ -156,15 +159,15 @@ parsepod/
 │   ├── searcher.py      # Tavily search
 │   └── scraper.py       # Tavily extract
 ├── 📝 script/
-│   ├── writer.py        # Groq script generation
+│   ├── writer.py        # Gemini 2.5 Flash script generation
 │   └── prompts.py       # Prompt templates
 ├── 🎵 audio/
-│   ├── tts.py           # Edge TTS synthesis
+│   ├── tts.py           # Gemini multi-speaker TTS (chunked, checkpointed)
 │   └── assembler.py     # pydub MP3 assembly
 ├── 🖥️ ui/
 │   └── app.py           # Streamlit frontend
 ├── 📤 output/           # Final MP3 files
-├── 🗂️ temp/             # Intermediate segments
+├── 🗂️ temp/             # Intermediate chunk MP3s (checkpointed)
 ├── packages.txt         # System packages (ffmpeg) for Streamlit Cloud
 ├── config.py            # Environment config
 ├── run.py               # CLI entry point
@@ -175,22 +178,22 @@ parsepod/
 
 ## 💰 Cost Breakdown
 
-| Service | Free Tier | Per Episode |
+| Service | Free Tier | Per Episode (est.) |
 |---------|-----------|-------------|
 | Tavily | 1,000 searches/month | ~$0.001 |
-| Groq API | 14,400 req/day · 30M tokens/day | $0.00 |
-| Edge TTS | Unlimited | $0.00 |
+| Gemini 2.5 Flash (LLM) | 1,500 req/day via AI Studio | $0.00 on free tier |
+| Gemini 3.1 Flash TTS | Generous free tier via AI Studio | $0.00 on free tier |
 | **Total** | | **~$0.001** |
 
-> 💡 Essentially free to run — Groq's free tier is extremely generous!
+> 💡 Both Gemini models are covered by a single API key from [Google AI Studio](https://aistudio.google.com). Free tier limits are generous for personal use; check [Google's pricing page](https://ai.google.dev/pricing) for current quotas.
 
 ---
 
 ## 🗺️ Roadmap
 
 - [x] 🔍 Web research with Tavily
-- [x] 🧠 Script generation with Groq (LLaMA 3.3 70B)
-- [x] 🎤 Two-host TTS with Edge TTS
+- [x] 🧠 Script generation with Gemini 2.5 Flash
+- [x] 🎤 Multi-speaker TTS with Gemini 3.1 Flash TTS
 - [x] 🎵 Audio assembly with pydub
 - [x] 🖥️ Streamlit UI
 - [x] ☁️ Streamlit Cloud deployment
@@ -213,8 +216,7 @@ parsepod/
 ## 🙏 Acknowledgements
 
 - [Tavily](https://tavily.com) — AI-native search API
-- [Groq](https://console.groq.com) — ultra-fast LLaMA inference
-- [Edge TTS](https://github.com/rany2/edge-tts) — Microsoft Edge voices
+- [Google Gemini](https://ai.google.dev) — LLM and multi-speaker TTS
 - [Streamlit](https://streamlit.io) — Python web app framework
 - [Claude Code](https://claude.ai) — AI coding assistant that built this
 

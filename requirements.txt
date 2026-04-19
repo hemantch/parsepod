@@ -1,11 +1,8 @@
 # Web search and scraping
 tavily-python
 
-# LLM - Groq (fast inference, replaces Gemini)
-groq
-
-# Text to speech
-edge-tts
+# LLM + TTS — Gemini
+google-genai>=1.73.1
 
 # Audio assembly
 pydub

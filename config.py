@@ -30,16 +30,21 @@ def _get(key: str, default: str = "") -> str:
 
 # ── API Keys ──────────────────────────────────────────────────────────────────
 TAVILY_API_KEY: str = _get("TAVILY_API_KEY")
-GEMINI_API_KEY: str = _get("GEMINI_API_KEY")  # kept for reference; script now uses Groq
-GROQ_API_KEY:   str = _get("GROQ_API_KEY")
+GEMINI_API_KEY: str = _get("GEMINI_API_KEY")
 
 # ── Podcast identity ──────────────────────────────────────────────────────────
 PODCAST_NAME: str = _get("PODCAST_NAME", "Parsepod")
 
-HOST_A_NAME: str  = _get("HOST_A_NAME", "Ryan")
-HOST_B_NAME: str  = _get("HOST_B_NAME", "Jenny")
-HOST_A_VOICE: str = _get("HOST_A_VOICE", "en-GB-RyanNeural")
-HOST_B_VOICE: str = _get("HOST_B_VOICE", "en-US-JennyNeural")
+HOST_A_NAME: str  = _get("HOST_A_NAME",  "Thomas")
+HOST_B_NAME: str  = _get("HOST_B_NAME",  "Libby")
+HOST_A_VOICE: str = _get("HOST_A_VOICE", "Charon")
+HOST_B_VOICE: str = _get("HOST_B_VOICE", "Kore")
+
+# ── TTS style ─────────────────────────────────────────────────────────────────
+TTS_STYLE_PROMPT: str = _get(
+    "TTS_STYLE_PROMPT",
+    "Podcast style. Natural British accents, warm and conversational, relaxed pacing.",
+)
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 OUTPUT_DIR: str = _get("OUTPUT_DIR", "./output")
@@ -56,8 +61,8 @@ def validate():
     missing = []
     if not TAVILY_API_KEY:
         missing.append("TAVILY_API_KEY")
-    if not GROQ_API_KEY:
-        missing.append("GROQ_API_KEY")
+    if not GEMINI_API_KEY:
+        missing.append("GEMINI_API_KEY")
     if missing:
         raise EnvironmentError(
             f"Missing required environment variables: {', '.join(missing)}\n"

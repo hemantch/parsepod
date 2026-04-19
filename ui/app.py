@@ -896,7 +896,7 @@ def render_studio(active: int, detail: str = "", tts_done: int = 0,
     elif active == 1:
         current_label = "Searching the web\u2026"
     elif active == 2:
-        current_label = "Writing with Groq\u2026"
+        current_label = "Writing with Gemini\u2026"
     elif active == 3 and not assembling:
         current_label = f"Recording {current_host}\u2026" if current_host else "Recording\u2026"
     elif assembling:
@@ -1015,11 +1015,8 @@ function mute(){{au.muted=!au.muted;}}
 def run_pipeline(topic: str, stage_slot):
     from research.scraper import search_and_scrape
     from script.writer    import generate_script
-    from audio.tts        import synthesise_turn
+    from audio.tts        import synthesise_script
     from audio.assembler  import assemble_episode
-
-    voice_map = {config.HOST_A_NAME: config.HOST_A_VOICE,
-                 config.HOST_B_NAME: config.HOST_B_VOICE}
 
     # ── Research ───────────────────────────────────────────────────────────────
     st.session_state.stage = 1
@@ -1030,7 +1027,7 @@ def run_pipeline(topic: str, stage_slot):
     # ── Script ─────────────────────────────────────────────────────────────────
     st.session_state.stage = 2
     stage_slot.markdown(
-        render_studio(2, detail=f"Found {n_sources} sources \u00b7 Writing with Groq\u2026"),
+        render_studio(2, detail=f"Found {n_sources} sources \u00b7 Writing with Gemini\u2026"),
         unsafe_allow_html=True,
     )
     script  = _run(generate_script(research_data))
@@ -1041,26 +1038,21 @@ def run_pipeline(topic: str, stage_slot):
     st.session_state.stage = 3
     os.makedirs(config.TEMP_DIR,   exist_ok=True)
     os.makedirs(config.OUTPUT_DIR, exist_ok=True)
-    for old in glob.glob(os.path.join(config.TEMP_DIR, "turn_*.mp3")):
-        os.remove(old)
 
-    segment_paths = []
-    for i, turn in enumerate(script):
-        stage_slot.markdown(
-            render_studio(3, detail=f"{turn['host']} \u00b7 turn {i+1}/{n_turns}",
-                          tts_done=i, tts_total=n_turns, current_host=turn["host"]),
-            unsafe_allow_html=True,
-        )
-        path = os.path.join(config.TEMP_DIR, f"turn_{i:03d}_{turn['host'].lower()}.mp3")
-        _run(synthesise_turn(turn["line"], voice_map[turn["host"]], path))
-        segment_paths.append(path)
+    n_chunks = (n_turns + 9) // 10  # matches CHUNK_SIZE=10 in tts.py
+    stage_slot.markdown(
+        render_studio(3, detail=f"Recording \u00b7 {n_chunks} chunk(s)\u2026",
+                      tts_done=0, tts_total=n_chunks),
+        unsafe_allow_html=True,
+    )
+    chunk_paths = _run(synthesise_script(script))
 
     # ── Assemble ───────────────────────────────────────────────────────────────
     stage_slot.markdown(
-        render_studio(3, tts_done=n_turns, tts_total=n_turns, assembling=True),
+        render_studio(3, tts_done=n_chunks, tts_total=n_chunks, assembling=True),
         unsafe_allow_html=True,
     )
-    output_path = assemble_episode(segment_paths)
+    output_path = assemble_episode(chunk_paths)
 
     from pydub import AudioSegment as _AS
     dur_s   = len(_AS.from_mp3(output_path)) / 1000
@@ -1318,7 +1310,7 @@ if _show_marketing:
     '<div class="pp-section-sub">Drop a topic. Parsepod handles the research, writing, voice recording, and audio mixing.</div>'
     '<div class="pp-features">'
     '<div class="pp-feat-card"><div class="pp-feat-icon">🔍</div><div class="pp-feat-title">Deep Research</div><div class="pp-feat-desc">Searches and scrapes live web sources for up-to-date context on any topic.</div></div>'
-    '<div class="pp-feat-card"><div class="pp-feat-icon">✍️</div><div class="pp-feat-title">Smart Scripting</div><div class="pp-feat-desc">Two-host banter and debate written by Groq\u2019s llama-3.3-70b model.</div></div>'
+    '<div class="pp-feat-card"><div class="pp-feat-icon">✍️</div><div class="pp-feat-title">Smart Scripting</div><div class="pp-feat-desc">Two-host banter and debate written by Gemini 2.5 Flash.</div></div>'
     '<div class="pp-feat-card"><div class="pp-feat-icon">🎙</div><div class="pp-feat-title">British Voices</div><div class="pp-feat-desc">Thomas &amp; Libby \u2014 neural text-to-speech that sounds genuinely broadcast-ready.</div></div>'
     '<div class="pp-feat-card"><div class="pp-feat-icon">🎵</div><div class="pp-feat-title">Instant MP3</div><div class="pp-feat-desc">Mixed, mastered, and ready to share. Download in one click.</div></div>'
     '</div>'
@@ -1335,8 +1327,8 @@ if _show_marketing:
     '<div class="pp-timeline">'
     '<div class="pp-step"><div class="pp-step-num">1</div><div class="pp-step-body"><div class="pp-step-title">Enter your topic</div><div class="pp-step-desc">Type anything \u2014 a news story, a curiosity, a question. The more specific, the sharper the episode.</div></div></div>'
     '<div class="pp-step"><div class="pp-step-num">2</div><div class="pp-step-body"><div class="pp-step-title">Parsepod searches the web</div><div class="pp-step-desc">Tavily fetches and scrapes up to 8 live sources, pulling raw content up to 5,000 characters per page.</div></div></div>'
-    '<div class="pp-step"><div class="pp-step-num">3</div><div class="pp-step-body"><div class="pp-step-title">AI writes the script</div><div class="pp-step-desc">Groq\u2019s LLM turns the research into a two-host back-and-forth script \u2014 no summarisation, just sharp dialogue.</div></div></div>'
-    '<div class="pp-step"><div class="pp-step-num">4</div><div class="pp-step-body"><div class="pp-step-title">Thomas &amp; Libby record it</div><div class="pp-step-desc">Microsoft Edge TTS voices each turn sequentially \u2014 British accents, natural cadence, broadcast quality.</div></div></div>'
+    '<div class="pp-step"><div class="pp-step-num">3</div><div class="pp-step-body"><div class="pp-step-title">AI writes the script</div><div class="pp-step-desc">Gemini 2.5 Flash turns the research into a two-host back-and-forth script \u2014 no summarisation, just sharp dialogue.</div></div></div>'
+    '<div class="pp-step"><div class="pp-step-num">4</div><div class="pp-step-body"><div class="pp-step-title">Thomas &amp; Libby record it</div><div class="pp-step-desc">Gemini 3.1 Flash TTS renders the full dialogue in a single multi-speaker call \u2014 natural prosody, British accents, broadcast quality.</div></div></div>'
     '<div class="pp-step"><div class="pp-step-num">5</div><div class="pp-step-body"><div class="pp-step-title">Download your MP3</div><div class="pp-step-desc">pydub assembles and mixes the final episode. Hit download \u2014 it\u2019s yours.</div></div></div>'
     '</div>'
     '</div>',
@@ -1350,10 +1342,10 @@ if _show_marketing:
     '<div class="pp-section-title">Common questions</div>'
     '<div class="pp-faq">'
     '<details class="pp-faq-item"><summary>How long does it take?</summary><p class="pp-faq-answer">Typically 45\u201390 seconds end-to-end. Research and LLM scripting take around 10\u201320 seconds each; TTS synthesis scales with script length but is usually under a minute for a 3-minute episode.</p></details>'
-    '<details class="pp-faq-item"><summary>Can I change the hosts or voices?</summary><p class="pp-faq-answer">Yes \u2014 set <code>HOST_A_VOICE</code> and <code>HOST_B_VOICE</code> in your <code>.env</code> file to any Edge TTS voice. Run <code>edge-tts --list-voices</code> to browse all options. Host names are also configurable.</p></details>'
+    '<details class="pp-faq-item"><summary>Can I change the hosts or voices?</summary><p class="pp-faq-answer">Yes \u2014 set <code>HOST_A_VOICE</code> and <code>HOST_B_VOICE</code> in your <code>.env</code> file to any Gemini TTS prebuilt voice name. Browse available voices at <a href="https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-tts-preview" target="_blank">ai.google.dev</a>. Host names are also configurable.</p></details>'
     '<details class="pp-faq-item"><summary>What topics work best?</summary><p class="pp-faq-answer">Anything with a reasonable amount of web coverage works well \u2014 science, technology, history, culture, current events. Very niche or obscure topics may yield fewer sources and a thinner script.</p></details>'
     '<details class="pp-faq-item"><summary>Is the audio downloadable?</summary><p class="pp-faq-answer">Yes. Every episode is saved as an MP3 in the <code>output/</code> directory and available via the in-app download button. Metadata is stored as a paired JSON file.</p></details>'
-    '<details class="pp-faq-item"><summary>Does it store my topics or audio?</summary><p class="pp-faq-answer">Everything stays local. Episodes are saved to your <code>output/</code> folder; nothing is sent anywhere beyond the Tavily and Groq API calls needed to generate the episode.</p></details>'
+    '<details class="pp-faq-item"><summary>Does it store my topics or audio?</summary><p class="pp-faq-answer">Everything stays local. Episodes are saved to your <code>output/</code> folder; nothing is sent anywhere beyond the Tavily and Gemini API calls needed to generate the episode.</p></details>'
     '</div>'
     '</div>',
     unsafe_allow_html=True,

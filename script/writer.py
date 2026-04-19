@@ -1,11 +1,11 @@
 """
-script/writer.py — generate a two-host podcast script using the Groq API.
+script/writer.py — generate a two-host podcast script using the Gemini API.
 
-Model: llama-3.3-70b-versatile (fast, reliable, generous free tier)
+Model: gemini-2.5-flash (stable, structured JSON output via response_mime_type)
 
 Flow:
   1. Combine scraped research into a single context block.
-  2. Send system + user prompts to Groq with JSON mode enabled.
+  2. Send system + user prompts to Gemini with JSON mode enabled.
   3. Parse, validate, and return the script as a list of turn dicts.
 """
 
@@ -13,7 +13,8 @@ import json
 import re
 from typing import Any
 
-from groq import Groq
+from google import genai
+from google.genai import types
 
 import config
 from script.prompts import build_system_prompt, build_user_prompt
@@ -21,7 +22,7 @@ from script.prompts import build_system_prompt, build_user_prompt
 
 # ── Model config ───────────────────────────────────────────────────────────────
 
-GROQ_MODEL     = "llama-3.3-70b-versatile"
+GEMINI_MODEL     = "gemini-2.5-flash"
 WORDS_PER_MINUTE = 150   # used to calculate target script length
 
 
@@ -38,7 +39,7 @@ async def generate_script(research_data: dict[str, Any]) -> list[dict[str, str]]
                          - content : list of {url, content}
 
     Returns:
-        List of turn dicts: [{"host": "Ryan"|"Jenny", "line": "..."}, ...]
+        List of turn dicts: [{"host": "Thomas"|"Libby", "line": "..."}, ...]
     """
     topic   = research_data["topic"]
     content = research_data.get("content", [])
@@ -55,9 +56,9 @@ async def generate_script(research_data: dict[str, Any]) -> list[dict[str, str]]
     target_words = config.EPISODE_DURATION_MINUTES * WORDS_PER_MINUTE
     print(f"[script] Target: ~{target_words} words ({config.EPISODE_DURATION_MINUTES} min episode)")
 
-    # ── Step 3: Call Groq ──────────────────────────────────────────────────────
-    print(f"[script] Calling Groq ({GROQ_MODEL})...")
-    raw_script = _call_groq(topic, research_text, target_words)
+    # ── Step 3: Call Gemini ────────────────────────────────────────────────────
+    print(f"[script] Calling Gemini ({GEMINI_MODEL})...")
+    raw_script = _call_gemini(topic, research_text, target_words)
 
     # ── Step 4: Parse and validate ────────────────────────────────────────────
     print("[script] Parsing script...")
@@ -84,24 +85,24 @@ def _build_research_context(content: list[dict], sources: list[dict]) -> str:
     )
 
 
-def _call_groq(topic: str, research_text: str, target_words: int) -> str:
+def _call_gemini(topic: str, research_text: str, target_words: int) -> str:
     """
-    Send the script-writing prompt to Groq and return the raw response text.
-    JSON mode is enabled so the model is constrained to return valid JSON.
+    Send the script-writing prompt to Gemini and return the raw response text.
+    response_mime_type constrains the model to return valid JSON.
     """
-    client = Groq(api_key=config.GROQ_API_KEY)
+    client = genai.Client(api_key=config.GEMINI_API_KEY)
 
-    response = client.chat.completions.create(
-        model=GROQ_MODEL,
-        response_format={"type": "json_object"},
-        temperature=0.9,
-        max_tokens=8192,
-        messages=[
-            {"role": "system", "content": build_system_prompt()},
-            {"role": "user",   "content": build_user_prompt(topic, research_text, target_words)},
-        ],
+    response = client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=build_user_prompt(topic, research_text, target_words),
+        config=types.GenerateContentConfig(
+            system_instruction=build_system_prompt(),
+            response_mime_type="application/json",
+            temperature=0.9,
+            max_output_tokens=8192,
+        ),
     )
-    return response.choices[0].message.content
+    return response.text
 
 
 def _repair_truncated_json(text: str) -> list | None:
@@ -141,7 +142,7 @@ def _parse_script(raw: str) -> list[dict[str, str]]:
             data = repaired
         else:
             raise ValueError(
-                f"Groq returned invalid JSON. Parse error: {exc}\n"
+                f"Gemini returned invalid JSON. Parse error: {exc}\n"
                 f"Raw response (first 500 chars):\n{raw[:500]}"
             ) from exc
 

@@ -24,7 +24,7 @@ HOST A — {config.HOST_A_NAME}
   • Speech patterns: measured pace, occasional dry aside, concise sentences
 
 HOST B — {config.HOST_B_NAME}
-  • American female voice, warm and genuinely curious
+  • British female voice, warm and genuinely curious
   • Enthusiastic without being over-the-top, makes complex ideas feel accessible
   • Bridges technical depth with real-world "so what does this mean for people?" framing
   • Occasionally pushes back with "but wait..." or "okay but here's the thing..."
