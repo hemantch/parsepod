@@ -37,14 +37,8 @@ PODCAST_NAME: str = _get("PODCAST_NAME", "Parsepod")
 
 HOST_A_NAME: str  = _get("HOST_A_NAME",  "Thomas")
 HOST_B_NAME: str  = _get("HOST_B_NAME",  "Libby")
-HOST_A_VOICE: str = _get("HOST_A_VOICE", "Charon")
-HOST_B_VOICE: str = _get("HOST_B_VOICE", "Kore")
-
-# ── TTS style ─────────────────────────────────────────────────────────────────
-TTS_STYLE_PROMPT: str = _get(
-    "TTS_STYLE_PROMPT",
-    "Podcast style. Natural British accents, warm and conversational, relaxed pacing.",
-)
+HOST_A_VOICE: str = _get("HOST_A_VOICE", "en-GB-ThomasNeural")
+HOST_B_VOICE: str = _get("HOST_B_VOICE", "en-GB-LibbyNeural")
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 OUTPUT_DIR: str = _get("OUTPUT_DIR", "./output")

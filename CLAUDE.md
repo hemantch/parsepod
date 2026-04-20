@@ -6,19 +6,19 @@ AI-powered podcast generator that searches the web for a given topic, generates 
 
 - **Tavily API** — web search and scraping (`AsyncTavilyClient`)
 - **Gemini 2.5 Flash** — LLM brain, model `gemini-2.5-flash`, JSON mode via `response_mime_type`
-- **Gemini 3.1 Flash TTS** — multi-speaker text to speech, model `gemini-3.1-flash-tts-preview`
-- **pydub** + **ffmpeg** — PCM → MP3 conversion and audio assembly
+- **Edge TTS** — text to speech, free, no API key needed
+- **pydub** + **ffmpeg** — audio assembly and MP3 export
 - **Streamlit** — premium dark UI (purple/indigo theme, glassmorphism)
 
 ## Hosts
 
 | Host | Voice | Personality |
 |------|-------|-------------|
-| Thomas (Host A) | `Charon` | British male, analytical, dry wit |
-| Libby (Host B) | `Kore` | British female, warm, curious |
+| Thomas (Host A) | `en-GB-ThomasNeural` | British male, analytical, dry wit |
+| Libby (Host B) | `en-GB-LibbyNeural` | British female, warm, curious |
 
 To change voices: edit `HOST_A_VOICE` / `HOST_B_VOICE` in `.env`.
-Available Gemini TTS voices: https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-tts-preview
+Full voice reference with alternatives is in `audio/tts.py`. Run `edge-tts --list-voices` to browse all 400+ options.
 
 ## Project Structure
 
@@ -31,12 +31,12 @@ parsepod/
 │   ├── writer.py        # Gemini script generation (gemini-2.5-flash, JSON mode)
 │   └── prompts.py       # System + user prompt builders
 ├── audio/
-│   ├── tts.py           # Gemini multi-speaker TTS, chunked (10 turns/call), checkpointed
-│   └── assembler.py     # pydub MP3 assembly, 450ms silence between chunks
+│   ├── tts.py           # Edge TTS synthesis, sequential per turn
+│   └── assembler.py     # pydub MP3 assembly, 450ms silence between turns
 ├── ui/
 │   └── app.py           # Streamlit UI — premium studio theme
 ├── output/              # Final MP3 + JSON metadata files
-├── temp/                # Intermediate per-chunk MP3 segments (checkpointed)
+├── temp/                # Intermediate per-turn MP3 segments
 ├── config.py            # Settings: st.secrets → os.environ → default
 ├── run.py               # CLI entry point
 ├── requirements.txt
@@ -51,9 +51,8 @@ GEMINI_API_KEY=your_key_here
 PODCAST_NAME=Parsepod
 HOST_A_NAME=Thomas
 HOST_B_NAME=Libby
-HOST_A_VOICE=Charon
-HOST_B_VOICE=Kore
-TTS_STYLE_PROMPT=Podcast style. Natural British accents, warm and conversational, relaxed pacing.
+HOST_A_VOICE=en-GB-ThomasNeural
+HOST_B_VOICE=en-GB-LibbyNeural
 OUTPUT_DIR=./output
 TEMP_DIR=./temp
 EPISODE_DURATION_MINUTES=3
@@ -70,6 +69,9 @@ streamlit run ui/app.py
 
 # Run via CLI
 python run.py "topic"
+
+# List all available Edge TTS voices
+edge-tts --list-voices
 ```
 
 ## Streamlit Cloud Deployment
@@ -95,10 +97,14 @@ Never indent HTML passed to `st.markdown(..., unsafe_allow_html=True)` with 4+ s
 ## Coding Style
 
 - Clean, well-commented Python
-- `async`/`await` for Tavily; Gemini clients are synchronous (called from async context)
+- `async`/`await` for Edge TTS and Tavily; Gemini client is synchronous (called from async context)
 - Each module has a single responsibility
 - No summarisation step — content is capped at the scraper level (5k chars/page)
-- No retry/fallback logic in the LLM layer — fail fast and surface errors
+- No retry/fallback logic anywhere — fail fast and surface errors
+
+## Known Issues / Watch Points
+
+- **TTS reverted from Gemini 3.1 Flash TTS (2026-04-19):** Gemini TTS free tier is capped at 3 RPM — not viable for per-episode use. Reverted to Edge TTS. Gemini LLM swap retained; that's what solved the original Groq rate-limit problem. Revisit Gemini TTS if quota increases or paid tier becomes justified.
 
 ## UI State (March 2026)
 

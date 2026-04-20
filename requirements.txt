@@ -1,8 +1,11 @@
 # Web search and scraping
 tavily-python
 
-# LLM + TTS — Gemini
+# LLM — Gemini
 google-genai>=1.73.1
+
+# Text to speech
+edge-tts
 
 # Audio assembly
 pydub

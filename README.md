@@ -22,8 +22,7 @@ You type a topic
       ↓
 🧠 Gemini 2.5 Flash writes a two-host script
       ↓
-🎤 Gemini 3.1 Flash TTS voices Thomas & Libby
-    (multi-speaker, 10 turns per API call)
+🎤 Edge TTS voices Thomas & Libby (one turn at a time)
       ↓
 🎧 pydub assembles everything into one MP3
       ↓
@@ -36,10 +35,10 @@ You type a topic
 
 | Host | Voice | Personality |
 |------|-------|-------------|
-| 🇬🇧 **Thomas** | `Charon` | British male, analytical, dry wit |
-| 🇬🇧 **Libby** | `Kore` | British female, warm, curious |
+| 🇬🇧 **Thomas** | `en-GB-ThomasNeural` | British male, analytical, dry wit |
+| 🇬🇧 **Libby** | `en-GB-LibbyNeural` | British female, warm, curious |
 
-Voices are Gemini TTS prebuilt voices. Change them via `HOST_A_VOICE` / `HOST_B_VOICE` in `.env`.
+Change voices via `HOST_A_VOICE` / `HOST_B_VOICE` in `.env`. Run `edge-tts --list-voices` to browse all 400+ options.
 
 ---
 
@@ -49,8 +48,8 @@ Voices are Gemini TTS prebuilt voices. Change them via `HOST_A_VOICE` / `HOST_B_
 |-----------|------|-----|
 | 🔍 Search + Scrape | [Tavily API](https://tavily.com) | AI-native, returns clean text |
 | 🧠 LLM Brain | [Gemini 2.5 Flash](https://ai.google.dev) — `gemini-2.5-flash` | Stable, structured JSON output |
-| 🎤 Text to Speech | [Gemini 3.1 Flash TTS](https://ai.google.dev) — `gemini-3.1-flash-tts-preview` | Native multi-speaker dialogue, natural prosody |
-| 🎵 Audio Assembly | [pydub](https://github.com/jiaaro/pydub) + ffmpeg | PCM → MP3 conversion and assembly |
+| 🎤 Text to Speech | [Edge TTS](https://github.com/rany2/edge-tts) | Free, 400+ voices, no API key needed |
+| 🎵 Audio Assembly | [pydub](https://github.com/jiaaro/pydub) + ffmpeg | Simple MP3 assembly |
 | 🖥️ Frontend | [Streamlit](https://streamlit.io) | Fast, Python-native UI |
 
 ---
@@ -99,7 +98,8 @@ EPISODE_DURATION_MINUTES=3
 
 Get your API keys:
 - 🔍 **Tavily** → [tavily.com](https://tavily.com) — 1,000 free searches/month
-- 🧠🎤 **Gemini** → [aistudio.google.com](https://aistudio.google.com) — generous free tier; one key covers both LLM and TTS
+- 🧠 **Gemini** → [aistudio.google.com](https://aistudio.google.com) — generous free tier for LLM
+- 🎤 **Edge TTS** — no key needed, free via Microsoft Azure infrastructure
 
 ### 5. Run the app
 
@@ -127,8 +127,8 @@ Opens at **http://localhost:8501** 🎉
 4. Click **Advanced settings** and paste the following into the **Secrets** panel:
 
    ```toml
-   TAVILY_API_KEY   = "tvly-your-key-here"
-   GEMINI_API_KEY   = "your-gemini-key-here"
+   TAVILY_API_KEY = "tvly-your-key-here"
+   GEMINI_API_KEY = "your-gemini-key-here"
    EPISODE_DURATION_MINUTES = "3"
    ```
 
@@ -162,12 +162,12 @@ parsepod/
 │   ├── writer.py        # Gemini 2.5 Flash script generation
 │   └── prompts.py       # Prompt templates
 ├── 🎵 audio/
-│   ├── tts.py           # Gemini multi-speaker TTS (chunked, checkpointed)
+│   ├── tts.py           # Edge TTS synthesis, one MP3 per turn
 │   └── assembler.py     # pydub MP3 assembly
 ├── 🖥️ ui/
 │   └── app.py           # Streamlit frontend
 ├── 📤 output/           # Final MP3 files
-├── 🗂️ temp/             # Intermediate chunk MP3s (checkpointed)
+├── 🗂️ temp/             # Intermediate per-turn MP3 segments
 ├── packages.txt         # System packages (ffmpeg) for Streamlit Cloud
 ├── config.py            # Environment config
 ├── run.py               # CLI entry point
@@ -182,7 +182,7 @@ parsepod/
 |---------|-----------|-------------|
 | Tavily | 1,000 searches/month | ~$0.001 |
 | Gemini 2.5 Flash (LLM) | 1,500 req/day via AI Studio | $0.00 on free tier |
-| Gemini 3.1 Flash TTS | Generous free tier via AI Studio | $0.00 on free tier |
+| Edge TTS | Unlimited, no account needed | $0.00 |
 | **Total** | | **~$0.001** |
 
 > 💡 Both Gemini models are covered by a single API key from [Google AI Studio](https://aistudio.google.com). Free tier limits are generous for personal use; check [Google's pricing page](https://ai.google.dev/pricing) for current quotas.
@@ -193,7 +193,7 @@ parsepod/
 
 - [x] 🔍 Web research with Tavily
 - [x] 🧠 Script generation with Gemini 2.5 Flash
-- [x] 🎤 Multi-speaker TTS with Gemini 3.1 Flash TTS
+- [x] 🎤 Two-host TTS with Edge TTS
 - [x] 🎵 Audio assembly with pydub
 - [x] 🖥️ Streamlit UI
 - [x] ☁️ Streamlit Cloud deployment
@@ -216,7 +216,8 @@ parsepod/
 ## 🙏 Acknowledgements
 
 - [Tavily](https://tavily.com) — AI-native search API
-- [Google Gemini](https://ai.google.dev) — LLM and multi-speaker TTS
+- [Google Gemini](https://ai.google.dev) — LLM script generation
+- [Edge TTS](https://github.com/rany2/edge-tts) — Microsoft Edge voices
 - [Streamlit](https://streamlit.io) — Python web app framework
 - [Claude Code](https://claude.ai) — AI coding assistant that built this
 
